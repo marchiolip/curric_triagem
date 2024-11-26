@@ -1,5 +1,6 @@
 # curric_triagem
 Sistema de Gerenciamento de Currículos para o RH
+
 📋 Descrição do Projeto
 Este sistema automatiza e organiza o processo de triagem de currículos, permitindo maior eficiência no gerenciamento de candidatos. A aplicação realiza o download automático de currículos marcados como "Não lidos" no e-mail, armazena-os em um arquivo JSON, e os analisa com base em critérios definidos para cada vaga. O sistema também gerencia entrevistas e fornece um acompanhamento detalhado do status de cada candidato.
 
