@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analisador de Currículos</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='dist/css/output.css')}}">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.min.css" rel="stylesheet" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        /* CSS para centralizar o modal */
+        #analisePopup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #analisePopup .content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<!-- Chamada do menu fixado - menu.html -->
+{% include 'menu.html' %}
+
+<body class="bg-white text-black antialiased">
+    <div class="mt-16 min-h-screen flex flex-col">
+        <div class="flex-1 container mx-auto p-4">
+            <h1 class="text-4xl font-bold mb-4 text-purple-700">Analisador de Currículos</h1>
+            <div id="upload-curriculos" class="bg-white p-6 rounded-lg shadow-md border border-purple-200 mx-auto mb-1 w-1/2">
+                <form id="curriculosForm" enctype="multipart/form-data" class="space-y-4">
+                    <input type="file" id="curriculosInput" name="arquivos_curriculos" accept=".pdf,.docx" multiple
+                        class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border file:border-gray-300 file:text-sm file:font-semibold file:bg-white file:text-gray-700 hover:file:bg-gray-100" />
+                    <button type="button" onclick="analisarCurriculos()"
+                        class="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-purple-500 hover:bg-purple-600 shadow">
+                        Analisar Currículos
+                    </button>
+                </form>
+                <div id="carregando" class="mt-4 hidden">
+                    <p>Carregando, por favor aguarde...</p>
+                </div>
+            </div>
+            <div id="resultadosNaoLidos" class="mb-1">
+                <!-- Resultados não lidos -->
+            </div>
+            <div id="resultados" class="mb-1">
+                <!-- Resultados -->
+            </div>
+        </div>
+
+        <div id="novoContainer" class="container mx-auto p-4 bg-white rounded-lg shadow-md border border-purple-200">
+            <h2 class="text-2xl font-bold mb-4 text-purple-700">Melhores Currículos - Por Perfil</h2>
+            <div class="mb-4">
+                <label for="selecionarPerfil" class="block text-sm font-medium">Selecione um perfil:</label>
+                <select id="selecionarPerfil" name="perfilSelecionado"
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-purple-300">
+                    <!-- Opções de perfil -->
+                </select>
+            </div>
+
+            <div id="dadosJSON" class="overflow-x-auto relative shadow-inner sm:rounded-lg">
+                <table id="tabelaResultados" class="w-full text-sm text-left table-auto">
+                    <thead class="text-xs uppercase bg-purple-700 text-white">
+                        <tr>
+                            <th id="sortNome" scope="col" class="py-3 px-6 cursor-pointer text-center">Nome</th>
+                            <th id="sortPontuacao" scope="col" class="py-3 px-6 cursor-pointer text-center">Pontuação
+                            </th>
+                            <th id="sortData" scope="col" class="py-3 px-6 cursor-pointer text-center">Data Analisado
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <!-- Linhas da tabela serão adicionadas aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="containerPaginacao" class="my-4">
+                <!-- Botões de paginação serão adicionados aqui -->
+            </div>
+            <!-- Adicione este pop-up logo antes do fechamento da tag </body> -->
+            <div id="analisePopup" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden justify-center items-center">
+                <div class="bg-white p-4 rounded-lg shadow-lg content">
+                    <h2 class="text-lg">Resultados da Análise:</h2>
+                    <div id="resultadosAnalise" class="mb-4">
+                        <!-- Os resultados serão inseridos aqui pelo JavaScript -->
+                    </div>
+                    <button onclick="fecharPopupAnalise()"
+                        class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-800">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function listarPerfis() {
+        fetch("/listar_perfis")
+            .then((response) => response.json())
+            .then((data) => {
+                const select = document.getElementById("selecionarPerfil");
+                select.innerHTML = '<option value="">Selecione um perfil</option>'; // Adiciona uma opção padrão
+                data.forEach((perfil) => {
+                    select.innerHTML += `<option value="${perfil}">${perfil}</option>`;
+                });
+            })
+            .catch((error) => console.error("Erro ao listar perfis:", error));
+    }
+
+    function analisarCurriculos() {
+        const carregandoDiv = document.getElementById("carregando");
+        carregandoDiv.style.display = "block"; // Mostra o indicador de carregamento
+
+        const curriculosInput = document.getElementById("curriculosInput").files;
+        const formData = new FormData();
+        const perfilSelecionado = document.getElementById("selecionarPerfil").value;
+        formData.append("perfilSelecionado", perfilSelecionado);
+
+        for (let i = 0; i < curriculosInput.length; i++) {
+            formData.append("arquivos_curriculos", curriculosInput[i]);
+        }
+
+        fetch("/analisar_curriculos", {
+            method: "POST",
+            body: formData,
+        })
+            .then((response) => response.json()) // Converte a resposta do servidor de JSON para um objeto JavaScript
+            .then((data) => {
+                carregandoDiv.style.display = "none"; // Esconde o indicador de carregamento
+                mostrarResultadosAnalise(data); // Chama a função para preencher e mostrar o pop-up com os resultados
+            })
+            .catch((error) => {
+                console.error("Erro ao analisar currículos:", error);
+                carregandoDiv.style.display = "none"; // Esconde o indicador de carregamento mesmo em caso de erro
+            });
+    }
+
+    function mostrarResultadosAnalise(resultados) {
+        var resultadosDiv = document.getElementById("resultadosAnalise");
+        resultadosDiv.innerHTML = ''; // Limpa os resultados anteriores
+
+        // Preenche os resultados no pop-up
+        resultados.forEach(resultado => {
+            var paragrafo = document.createElement('p');
+            paragrafo.textContent = resultado.nome_curriculo + ': ' + resultado.pontuacao_final;
+            resultadosDiv.appendChild(paragrafo);
+        });
+
+        document.getElementById('analisePopup').style.display = 'flex'; // Mostra o pop-up
+    }
+
+    function fecharPopupAnalise() {
+        document.getElementById('analisePopup').style.display = 'none'; // Esconde o pop-up
+        window.location.reload(); // Recarrega a página
+    }
+
+    // Chama a função listarPerfis ao carregar a página
+    document.addEventListener("DOMContentLoaded", listarPerfis);
+
+    let paginaAtual = 1;
+    const itensPorPagina = 25;
+    let paginas = [];
+
+    function exibirDadosDoJSON(perfilSelecionado) {
+        fetch("/resultados")
+            .then(response => response.json())
+            .then(data => {
+                const dadosPerfil = data.filter(item => item.perfil_selecionado === perfilSelecionado);
+                dadosPerfil.sort((a, b) => b.pontuacao - a.pontuacao);
+
+                paginas = [];
+                for (let i = 0; i < dadosPerfil.length; i += itensPorPagina) {
+                    paginas.push(dadosPerfil.slice(i, i + itensPorPagina));
+                }
+
+                renderizarPagina(0);
+                criarBotoesPaginacao(paginas.length); // Atualiza a paginação com a quantidade correta de páginas
+            })
+            .catch(error => console.error("Erro ao carregar dados do JSON:", error));
+    }
+
+    function renderizarPagina(indicePagina) {
+        const tabelaBody = document.getElementById("tabelaResultados").querySelector("tbody");
+        tabelaBody.innerHTML = "";
+        paginas[indicePagina].forEach((item, index) => {
+            const tr = document.createElement("tr");
+            tr.className = index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-200";
+
+            // Adiciona célula com o nome do currículo como um link
+            tr.innerHTML = `
+            <td class="text-center">
+                <a href="/curriculos/${encodeURIComponent(item.nome_curriculo)}" target="_blank">${item.nome_curriculo}</a>
+            </td>
+            <td class="text-center">${parseFloat(item.pontuacao).toFixed(3)}</td>
+            <td class="text-center">${item.data_analisado || 'Não disponível'}</td>
+        `;
+            tabelaBody.appendChild(tr);
+        });
+    }
+
+    function criarBotoesPaginacao(numPaginas) {
+        const containerPaginacao = document.getElementById("containerPaginacao");
+        containerPaginacao.innerHTML = "";
+        containerPaginacao.className = "flex justify-end bottom-0 items-center"; // Adiciona margem à direita
+
+        // Botão para voltar para a página anterior
+        if (paginaAtual > 1) {
+            containerPaginacao.innerHTML += `<button onclick="irParaPagina(paginaAtual - 1)" class="pagination-button bg-purple-600 text-white text-sm py-1 px-3 rounded hover:bg-purple-700 transition-colors duration-200">«</button>`;
+        }
+
+        // Mostra a página atual de total de páginas
+        containerPaginacao.innerHTML += `<span class="inline-block text-purple-800 text-sm font-medium my-2 mx-2">Página ${paginaAtual} de ${numPaginas}</span>`;
+
+        // Botão para avançar para a próxima página
+        if (paginaAtual < numPaginas) {
+            containerPaginacao.innerHTML += `<button onclick="irParaPagina(paginaAtual + 1)" class="pagination-button bg-purple-600 text-white text-sm py-1 px-3 rounded hover:bg-purple-700 transition-colors duration-200">»</button>`;
+        }
+    }
+
+    function irParaPagina(numPagina) {
+        if (numPagina < 1 || numPagina > paginas.length) return;
+        paginaAtual = numPagina;
+        renderizarPagina(paginaAtual - 1);
+        criarBotoesPaginacao(paginas.length); // Atualiza os botões de paginação
+    }
+
+    // Adiciona evento de mudança para o select de perfis
+    document.getElementById("selecionarPerfil").addEventListener("change", function () {
+        const perfilSelecionado = this.value;
+        if (perfilSelecionado) {
+            paginaAtual = 1; // Reinicia a paginação
+            exibirDadosDoJSON(perfilSelecionado);
+        } else {
+            document.getElementById("dadosJSON").innerHTML = ''; // Limpa os dados
+            document.getElementById("containerPaginacao").innerHTML = ''; // Limpa a paginação
+        }
+    });
+
+    // Carrega os perfis disponíveis na inicialização
+    fetch("/PERFIS") // Certifique-se de que esta rota está configurada para listar os arquivos JSON de perfis
+        .then((response) => response.json())
+        .then((perfis) => {
+            // Preenche o menu suspenso de perfis
+            const selecionarPerfil = document.getElementById("selecionarPerfil");
+            perfis.forEach((perfil) => {
+                const option = document.createElement("option");
+                option.value = perfil; // Usamos o nome do arquivo como valor
+                option.textContent = perfil; // Exibe o nome do perfil no menu suspenso
+                selecionarPerfil.appendChild(option);
+            });
+
+            // Exibe os dados do primeiro perfil disponível (se houver)
+            if (perfis.length > 0) {
+                exibirDadosDoJSON(perfis[0]);
+            }
+        })
+        .catch((error) => console.error("Erro ao carregar perfis:", error));
+
+    let ordemAtual = "asc"; // Estado inicial da ordem de classificação
+
+    function ordenarTabela(campo, tipo) {
+        const tabela = document.getElementById("tabelaResultados");
+        const linhas = Array.from(tabela.getElementsByTagName("tr")).slice(1); // Ignora o cabeçalho
+
+        linhas.sort((a, b) => {
+            const valorA = tipo === "num" ? parseFloat(a.children[campo].textContent) : a.children[campo].textContent.toLowerCase();
+            const valorB = tipo === "num" ? parseFloat(b.children[campo].textContent) : b.children[campo].textContent.toLowerCase();
+
+            if (ordemAtual === "asc") {
+                return valorA > valorB ? 1 : -1;
+            } else {
+                return valorA < valorB ? 1 : -1;
+            }
+        });
+
+        ordemAtual = ordemAtual === "asc" ? "desc" : "asc"; // Inverte a ordem para a próxima classificação
+        tabela.getElementsByTagName("tbody")[0].append(...linhas); // Atualiza a tabela com linhas ordenadas
+    }
+
+    // Adiciona eventos de clique aos cabeçalhos da tabela
+    document.getElementById("sortNome").addEventListener("click", () => ordenarTabela(0, "str"));
+    document.getElementById("sortPontuacao").addEventListener("click", () => ordenarTabela(1, "num"));
+    document.getElementById("sortData").addEventListener("click", () => ordenarTabela(2, "str"));
+    document.addEventListener("DOMContentLoaded", function () {
+        const baixarCurriculosBtn = document.querySelector("a[href='/executar_gmail']");
+        if (baixarCurriculosBtn) {
+            baixarCurriculosBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                fetch('/executar_gmail')
+                    .then(response => response.json())
+                    .then(data => alert(data.mensagem))
+                    .catch(error => alert("Erro ao executar o script: " + error));
+            });
+        }
+    });
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+</body>
+
+</html>

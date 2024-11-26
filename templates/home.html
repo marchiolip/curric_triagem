@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kanto A - Recursos Humanos</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='dist/css/output.css')}}" />
+    <link href="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.min.css" rel="stylesheet" />
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+
+        .container-section {
+            display: flex;
+            justify-content: center;
+            /* Centraliza os containers */
+            margin-bottom: 2rem;
+            margin-top: 2rem;
+            margin-left: 2rem;
+            width: 100%;
+            /* Torna a largura do container-section igual à largura da tela */
+        }
+
+        .container-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            /* Duas colunas com largura igual */
+            margin-top: 4rem;
+            /* Aumenta a margem superior */
+            margin: 4rem auto 2rem;
+            /* Margem superior, automática nas laterais, inferior */
+            max-width: 1600px;
+            /* Aumenta a largura máxima do grid */
+            width: 100%;
+            /* Largura completa */
+        }
+
+        .section {
+            flex-basis: 80%;
+            /* Define a largura base de cada section */
+            margin: 0 1%;
+            /* Adiciona uma pequena margem aos lados para separá-los */
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            background-color: #6b46c1;
+            /* bg-purple-600 */
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            font-size: 1.25rem;
+            /* text-xl */
+            font-weight: bold;
+            /* font-bold */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .section-header:hover {
+            background-color: #5a67d8;
+            /* bg-purple-800 */
+        }
+
+        .section-content {
+            padding: 1rem;
+        }
+    </style>
+</head>
+
+<body class="bg-white antialiased">
+    {% include 'menu.html' %}
+
+    <div class="container-grid">
+        <div class="container-section">
+            <div class="section">
+                <div class="section-header" onclick="location.href='{{ url_for('analisar') }}'">
+                    Análise de Currículos
+                </div>
+                <div class="section-content">
+                    <p>Automatize a análise de currículos com base em perfis personalizados, melhorando a eficiência e a
+                        precisão no processo de seleção.</p>
+                    <img src="{{ url_for('static', filename='pg_analise.png') }}" alt="Análise de Currículos"
+                        class="object-cover h-48 w-full rounded-t-lg">
+                </div>
+            </div>
+            <!-- Espaço vazio -->
+            <div></div>
+        </div>
+
+        <div class="container-section">
+            <!-- Espaço vazio -->
+            <div></div>
+            <div class="section">
+                <div class="section-header" onclick="location.href='{{ url_for('criar_perfil') }}'">
+                    Criação e Visualização de Perfis
+                </div>
+                <div class="section-content">
+                    <p>Crie e visualize perfis de vaga, definindo critérios específicos para cada posição, facilitando a
+                        identificação dos candidatos ideais.</p>
+                    <img src="{{ url_for('static', filename='pg_profile.png') }}" alt="Criação e Visualização de Perfis"
+                        class="object-cover h-48 w-full rounded-t-lg">
+                </div>
+            </div>
+        </div>
+
+        <div class="container-section">
+            <div class="section">
+                <div class="section-header" onclick="location.href='{{ url_for('agenda') }}'">
+                    Agenda de Entrevistas
+                </div>
+                <div class="section-content">
+                    <p>Organize e gerencie suas entrevistas de maneira eficiente, com uma agenda completa e integrada.
+                    </p>
+                    <img src="{{ url_for('static', filename='pg_online.png') }}" alt="Agenda de Entrevistas"
+                        class="object-cover h-48 w-full rounded-t-lg">
+                </div>
+            </div>
+            <!-- Espaço vazio -->
+            <div></div>
+        </div>
+
+        <div class="container-section">
+            <div class="section">
+                <div class="section-header" onclick="location.href='{{ url_for('executar_gmail') }}'">
+                    Baixar Currículos
+                </div>
+                <div class="section-content">
+                    <p>Baixe automaticamente todos os emails não lidos do email de seleção da Kanto A, diretamente para
+                        o seu computador.</p>
+                    <img src="{{ url_for('static', filename='pg_mail.png') }}" alt="Baixar Currículos"
+                        class="object-cover h-48 w-full rounded-t-lg">
+                </div>
+            </div>
+            <!-- Espaço vazio -->
+            <div></div>
+        </div>
+
+    </div>
+    </div>
+
+    <footer class="bg-white shadow-lg mt-10 p-4 text-center">
+        <p class="text-gray-600">
+            &copy; 2023 Kanto A - Recursos Humanos. Todos os direitos reservados.
+        </p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.min.js"></script>
+</body>
+
+</html>

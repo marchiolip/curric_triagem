@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset=" UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acompanhamento de Entrevistas</title>
+  <link rel="stylesheet" href="{{url_for('static',filename='dist/css/output.css')}}" />
+  <link href="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.min.css" rel="stylesheet" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+    /* Adicione suas customizações de CSS aqui */
+  </style>
+  <script src="{{ url_for('static', filename='dist/index.global.min.js') }}"></script>
+</head>
+
+<body class="bg-white text-black antialiased">
+  {% include 'menu.html' %}
+
+  <div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold text-center text-purple-700 mb-4">
+      Acompanhamento de Entrevistas
+    </h1>
+    <!-- Seleção de mês -->
+    <div class="mb-6 shadow-lg sm:rounded-lg p-6 bg-white">
+      <label for="selecionarMes" class="block text-sm font-bold mb-2 text-purple-700">Selecione o mês:</label>
+      <select id="selecionarMes"
+        class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-200"
+        onchange="filtrarEntrevistasPorMes(this.value)">
+        <option value="">Todos os meses</option>
+        <!-- As opções serão inseridas pelo JavaScript -->
+      </select>
+
+
+      <!-- Seleção de entrevista -->
+
+      <label for="selecionarEntrevista" class="block text-sm font-bold mb-2 text-purple-700 mt-4">Selecione uma
+        entrevista:</label>
+      <select id="selecionarEntrevista"
+        class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-200"
+        onchange="mostrarCampoObservacao(this.value)">
+        <!-- As opções de entrevistas serão preenchidas aqui -->
+      </select>
+
+
+      <!-- Campo de observação -->
+      <div id="detalhesEntrevista" style="display: none;">
+        <label for="observacao" class="block text-sm font-bold mb-2 text-purple-700 mt-4">Observação:</label>
+        <textarea id="observacao"
+          class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-200"
+          rows="4"></textarea>
+        <button onclick="salvarObservacao()"
+          class="mt-4 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600">Salvar Observação</button>
+      </div>
+
+    </div>
+
+    <div class="mb-6 shadow-lg sm:rounded-lg p-6 bg-white">
+      <!-- Div para mostrar entrevistas com observações -->
+      <h2 id="tituloEntrevistas" class="text-xl font-bold text-center text-purple-700 mb-4" style="display:none;">
+        Observações
+      </h2>
+      <div id="entrevistasSalvas" class="mt-4">
+        <!-- As entrevistas com observações serão listadas aqui pelo JavaScript -->
+      </div>
+    </div>
+
+
+    <div class="container mx-auto p-6">
+      <!-- Envolver o conteúdo em uma div com sombra e fundo -->
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h2 class="text-xl font-bold text-center text-purple-700 mb-4">
+          Admissões
+        </h2>
+
+        <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+          <table id="tabelaHistoricoAdmissoes" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-white uppercase bg-purple-700 dark:bg-purple-700">
+              <tr>
+                <th scope="col" class="py-3 px-4 text-center">Data de Admissão</th>
+                <th scope="col" class="py-3 px-4 text-center">Nome</th>
+                <th scope="col" class="py-3 px-4 text-center">Loja</th>
+                <th scope="col" class="py-3 px-4 text-center">Cargo</th>
+                <th scope="col" class="py-3 px-4 text-center">Origem</th>
+                <th scope="col" class="py-3 px-4 text-center">1° Período experiência</th>
+                <th scope="col" class="py-3 px-4 text-center">Fechamento</th>
+                <th scope="col" class="py-3 px-4 text-center">2° Período experiência</th>
+                <th scope="col" class="py-3 px-4 text-center">Fechamento</th>
+                <th scope="col" class="py-3 px-4 text-center">Tempo de permanência</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- As linhas da tabela serão inseridas aqui pelo JavaScript -->
+              <!-- Cada linha terá a classe "bg-white" ou "bg-gray-100" dependendo da paridade -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <br>
+
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h2 class="text-xl font-bold text-center text-verde mb-4">
+          Efetivações
+        </h2>
+        <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+          <table id="tabelaHistoricoContratacoes" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-white uppercase fundo-verde">
+              <tr>
+                <th scope="col" class="py-3 px-4 text-center">Data de Admissão</th>
+                <th scope="col" class="py-3 px-4 text-center">Nome</th>
+                <th scope="col" class="py-3 px-4 text-center">Loja</th>
+                <th scope="col" class="py-3 px-4 text-center">Cargo</th>
+                <th scope="col" class="py-3 px-4 text-center">Origem</th>
+                <th scope="col" class="py-3 px-4 text-center">Data de efetivação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- As linhas para candidatos dispensados serão inseridas aqui pelo JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <br>
+
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h2 class="text-xl font-bold text-center text-rosa mb-4">
+          Dispensas
+        </h2>
+        <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+          <table id="tabelaHistoricoDispensas" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-white uppercase fundo-rosa">
+              <tr>
+                <th scope="col" class="py-3 px-4 text-center">Data de Admissão</th>
+                <th scope="col" class="py-3 px-4 text-center">Nome</th>
+                <th scope="col" class="py-3 px-4 text-center">Loja</th>
+                <th scope="col" class="py-3 px-4 text-center">Cargo</th>
+                <th scope="col" class="py-3 px-4 text-center">Origem</th>
+                <th scope="col" class="py-3 px-4 text-center">Data de dispensa</th>
+                <th scope="col" class="py-3 px-4 text-center">Definição</th>
+                <th scope="col" class="py-3 px-4 text-center">Tempo de permanência</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- As linhas para candidatos dispensados serão inseridas aqui pelo JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <div id="modalContratacao" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2 id="modalNome">Nome do Candidato</h2>
+          </div>
+          <div class="modal-body">
+            <!-- Caixa de seleção para motivo da dispensa -->
+            <label for="motivoDispensa">Selecione o motivo:</label>
+            <select id="motivoDispensa" class="border-gray-300 rounded-md shadow-sm">
+              <option value="Contratada">Contratada</option>
+              <option value="DispensaEmpresa">Dispensa (Empresa)</option>
+              <option value="DispensaPessoal">Dispensa (Pessoal)</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button id="fecharModal">Fechar</button>
+            <button id="contratarCandidato">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+
+
+      <div id="modalDispensaContratado" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="close" onclick="fecharModalDispensa()">&times;</span>
+            <h2 id="modalNomeDispensa">Nome do Candidato</h2>
+          </div>
+          <div class="modal-body">
+            <!-- Caixa de seleção para motivo da dispensa -->
+            <label for="motivoDispensaContratado">Selecione o motivo da dispensa:</label>
+            <br>
+            <select id="motivoDispensaContratado" class="border-gray-300 rounded-md shadow-sm">
+              <option value="DispensaEmpresa">Dispensa (Empresa)</option>
+              <option value="DispensaPessoal">Dispensa (Pessoal)</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button id="fecharModalDispensa">Fechar</button>
+            <button id="confirmarDispensa">Confirmar Dispensa</button>
+          </div>
+        </div>
+      </div>
+
+
+
+      <div id="modalAdmissao" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="close" onclick="fecharModalAdmissao()">&times;</span>
+            <h2>Admitir Candidato</h2>
+          </div>
+          <div class="modal-body">
+            <br>
+            <label for="origem">Origem:</label>
+            <select id="origem">
+              <option value="Vagas Floripa">Vagas Floripa</option>
+              <option value="Indeed">Indeed</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Indicação">Indicação</option>
+              <option value="Abordagem">Abordagem</option>
+              <option value="Entregou na loja">Entregou na loja</option>
+            </select>
+            <label for="loja">Loja:</label>
+            <select id="loja">
+              <option value="Store">Store</option>
+              <option value="Kobrasol">Kobrasol</option>
+              <option value="Boutique">Boutique</option>
+              <option value="Esteves">Esteves</option>
+              <option value="Tenente">Tenente</option>
+              <option value="Outlet">Outlet</option>
+              <option value="Logística">Logística</option>
+              <option value="Financeiro">Financeiro</option>
+            </select>
+            <label for="cargo">Cargo:</label>
+            <input type="text" id="cargo" placeholder="Digite o cargo">
+            <label for="dataAdmissao">Data de Admissão:</label>
+            <input type="date" id="dataAdmissao">
+          </div>
+          <div class="modal-footer">
+            <button class="btn-contratar" onclick="iniciarProcessoDeAdmissao()">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+
+      <script>
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const selectMes = document.getElementById("selecionarMes");
+          const mesAtual = new Date().getMonth();
+          selectMes.options.length = 0;
+
+          // Adiciona a opção "Todos os meses" no início
+          const opcaoTodos = document.createElement("option");
+          opcaoTodos.value = '';
+          opcaoTodos.textContent = 'Todos os meses';
+          selectMes.appendChild(opcaoTodos);
+
+          // Adiciona os meses em ordem crescente até o mês atual
+          for (let mes = 0; mes <= mesAtual; mes++) {
+            const opcao = document.createElement("option");
+            opcao.value = mes + 1 < 10 ? `0${mes + 1}` : `${mes + 1}`;
+            const nomeMes = new Date(2024, mes).toLocaleString('pt-BR', { month: 'long' });
+            opcao.textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+            selectMes.appendChild(opcao);
+          }
+
+          const botaoConfirmarAdmissao = document.getElementById('confirmarAdmissao');
+
+          if (botaoConfirmarAdmissao) {
+            botaoConfirmarAdmissao.addEventListener('click', () => {
+              const candidato = {
+                nome: document.getElementById('nomeCandidato').value,
+                loja: document.getElementById('lojaCandidato').value,
+                cargo: document.getElementById('cargoCandidato').value,
+                origem: document.getElementById('origemCandidato').value,
+                dataAdmissao: new Date().toISOString().split('T')[0]
+              };
+              admitirCandidato(candidato);
+            });
+          }
+
+          carregarEntrevistasComObservacoes();
+          filtrarEntrevistasPorMes('');
+          atualizarTabelaAdmissoes();
+          atualizarTabelaDispensas();
+          atualizarTabelaContratacao();
+
+        });
+
+        function filtrarEntrevistasPorMes(mesSelecionado) {
+          document.getElementById('detalhesEntrevista').style.display = 'none';
+
+          fetch(`/entrevistas?mes=${mesSelecionado}`)
+            .then((response) => response.json())
+            .then((entrevistas) => {
+              const selectEntrevista = document.getElementById('selecionarEntrevista');
+              selectEntrevista.options.length = 0;
+
+              const opcaoPadrao = document.createElement('option');
+              opcaoPadrao.textContent = 'Selecione um candidato';
+              opcaoPadrao.disabled = true;
+              opcaoPadrao.selected = true;
+              selectEntrevista.appendChild(opcaoPadrao);
+
+              entrevistas.forEach((entrevista) => {
+                // Verifica se o candidato não tem um valor de "origem" definido, indicando que ainda não passou por admissão
+                if (!entrevista.origem) {
+                  const dataEntrevista = new Date(entrevista.data);
+                  const mesEntrevista = `${dataEntrevista.getMonth() + 1}`.padStart(2, '0');
+                  if (mesSelecionado === '' || mesEntrevista === mesSelecionado) {
+                    const opcao = document.createElement('option');
+                    const dataFormatada = dataEntrevista.toLocaleDateString('pt-BR');
+                    opcao.value = entrevista.candidato;
+                    opcao.textContent = `${entrevista.candidato} - ${dataFormatada} - ${entrevista.perfil || ''}`;
+                    selectEntrevista.appendChild(opcao);
+                  }
+                }
+              });
+            })
+            .catch((error) => {
+              console.error('Erro ao carregar entrevistas:', error);
+            });
+        }
+
+        document.getElementById('selecionarMes').addEventListener('change', function () {
+          filtrarEntrevistasPorMes(this.value);
+        });
+
+        function mostrarCampoObservacao(candidato) {
+          if (candidato) {
+            // Mostrar campo de observação
+            document.getElementById('detalhesEntrevista').style.display = 'block';
+
+            // Se necessário, carregar dados de observação existentes para este candidato
+            // fetchObservacao(candidato);
+          } else {
+            document.getElementById('detalhesEntrevista').style.display = 'none';
+          }
+        }
+
+        function salvarObservacao() {
+          const candidato = document.getElementById('selecionarEntrevista').value;
+          const observacao = document.getElementById('observacao').value;
+
+          fetch('/salvar_observacao', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ candidato, observacao }),
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Observação salva com sucesso.');
+                document.getElementById('detalhesEntrevista').style.display = 'none'; // Esconde o campo de observações
+                carregarEntrevistasComObservacoes(); // Chama a função para carregar as entrevistas com observações
+              } else {
+                throw new Error(data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Erro ao salvar observação:', error);
+              alert('Erro ao salvar observação.');
+            });
+        }
+
+        function carregarEntrevistasComObservacoes() {
+          fetch('/entrevistas_com_observacoes')
+            .then(response => response.json())
+            .then(entrevistasComObs => {
+              const divEntrevistas = document.getElementById('entrevistasSalvas');
+              divEntrevistas.innerHTML = ''; // Limpa o conteúdo anterior
+              const tituloEntrevistas = document.getElementById('tituloEntrevistas');
+
+              if (entrevistasComObs.length > 0) {
+                tituloEntrevistas.style.display = 'block'; // Mostra o título se houver entrevistas com observações
+              } else {
+                tituloEntrevistas.style.display = 'none'; // Esconde o título se não houver observações
+              }
+
+              entrevistasComObs.forEach(entrevista => {
+                if (entrevista.observacao && !entrevista.dispensada) {
+                  const div = document.createElement('div');
+                  div.classList.add('div-observacao'); // Assegure-se de adicionar esta classe
+                  div.style.backgroundColor = '#f3e8ff'; // Cor de fundo roxo claro
+                  div.style.padding = '10px';
+                  div.style.marginBottom = '10px';
+                  div.style.borderRadius = '5px';
+
+                  const btnContratar = document.createElement('button');
+                  btnContratar.textContent = 'Contratar';
+                  btnContratar.classList.add('btn-contratar');
+                  btnContratar.onclick = function (event) {
+                    event.stopPropagation();
+                    abrirModalAdmissao(entrevista.candidato); // Aqui deve ser passado o nome do candidato
+                  };
+
+
+
+
+                  const btnExcluirObservacao = document.createElement('button');
+                  btnExcluirObservacao.textContent = 'Excluir Observação';
+                  btnExcluirObservacao.classList.add('btn-excluir-obs');
+                  btnExcluirObservacao.onclick = function (event) {
+                    event.stopPropagation(); // Impede que o clique afete elementos pais
+                    if (confirm('Tem certeza que quer executar essa ação?')) {
+                      excluirObservacao(entrevista.candidato); // Chama a função de exclusão
+                    }
+                  };
+
+                  const nomePerfil = document.createElement('p');
+                  nomePerfil.textContent = `${entrevista.candidato} - ${entrevista.perfil || ''}`;
+                  nomePerfil.style.color = '#6b21a8'; // Cor roxa
+                  nomePerfil.style.fontWeight = 'bold';
+
+                  const descricao = document.createElement('p');
+                  descricao.textContent = entrevista.observacao;
+                  descricao.classList.add('observacao-content'); // Adiciona a classe aqui
+
+                  div.setAttribute('data-candidato', entrevista.candidato); // Adiciona um atributo de dado personalizado
+                  div.appendChild(nomePerfil);
+                  div.appendChild(descricao);
+                  div.appendChild(btnContratar);
+                  div.appendChild(btnExcluirObservacao);
+                  div.addEventListener('click', function () {
+                    editarObservacao(entrevista.candidato, entrevista.observacao, div);
+                  });
+
+                  divEntrevistas.appendChild(div);
+                }
+              });
+            })
+            .catch(error => {
+              console.error('Erro ao carregar entrevistas com observações:', error);
+            });
+        }
+
+        function editarObservacao(candidato, observacaoAtual, div) {
+          // Substitui o parágrafo pela textarea
+          div.innerHTML = `
+    <strong class="text-purple-700">${candidato}</strong>
+    <textarea class="observacao-editavel">${observacaoAtual}</textarea>
+    <button class="btn-salvar-obs">Salvar</button>
+  `;
+
+          // Foca a textarea imediatamente para a edição
+          const textarea = div.querySelector('.observacao-editavel');
+          textarea.focus();
+          // Certifique-se de que o cursor esteja no final do texto
+          textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+
+          // Evento de clique para o botão de salvar
+          const btnSalvar = div.querySelector('.btn-salvar-obs');
+          btnSalvar.addEventListener('click', function () {
+            const novaObservacao = textarea.value;
+            salvarObservacaoEditada(candidato, novaObservacao);
+          });
+        }
+
+
+        function salvarObservacaoEditada(candidato, novaObservacao) {
+          // Envio da nova observação para o servidor
+          fetch('/salvar_observacao', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ candidato, observacao: novaObservacao }),
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Observação atualizada com sucesso.');
+                carregarEntrevistasComObservacoes(); // Recarrega as observações
+              } else {
+                throw new Error(data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Erro ao salvar a observação editada:', error);
+              alert('Erro ao salvar a observação.');
+            });
+        }
+
+        // Você precisaria implementar esta função se quiser carregar observações existentes
+        function fetchObservacao(candidato) {
+          fetch(`/get_observacao?candidato=${candidato}`)
+            .then(response => response.json())
+            .then(data => {
+              document.getElementById('observacao').value = data.observacao || '';
+            })
+            .catch((error) => {
+              console.error('Erro ao carregar observação:', error);
+            });
+        }
+
+        // Adicione um ouvinte de eventos para o seletor de entrevista
+        document.getElementById('selecionarEntrevista').addEventListener('change', function () {
+          mostrarCampoObservacao(this.value);
+        });
+
+
+        // ------------------- Códigos das tabelas de Admissão - Contratação - Dispensa -------------------------------------
+
+
+        function iniciarProcessoDeAdmissao() {
+          const nomeCandidato = document.getElementById('modalNome').textContent.trim();
+          const origem = document.getElementById('origem').value;
+          const loja = document.getElementById('loja').value;
+          const cargo = document.getElementById('cargo').value;
+          const dataAdmissaoInput = document.getElementById('dataAdmissao');
+          const dataAdmissao = dataAdmissaoInput.value ? dataAdmissaoInput.value : null; // Enviar como 'yyyy-mm-dd'
+
+          if (!dataAdmissao) {
+            alert('Por favor, insira uma data de admissão válida.');
+            return;
+          }
+
+          const candidato = {
+            candidato: nomeCandidato,
+            origem,
+            loja,
+            cargo,
+            dataAdmissao
+          };
+
+          admitirCandidato(candidato);
+        }
+
+
+        async function admitirCandidato(candidato) {
+          try {
+            const response = await fetch('/admitir_candidato', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(candidato)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              console.log('Candidato admitido com sucesso:', data.candidato);
+              removerCandidatoDasObservacoes(candidato.candidato);
+              carregarEntrevistasComObservacoes();
+              await atualizarTabelaAdmissoes();
+              document.getElementById('modalAdmissao').style.display = 'none';
+            } else {
+              alert('Erro ao admitir candidato: ' + data.message);
+            }
+          } catch (error) {
+            console.error('Erro na requisição de admissão:', error);
+            alert('Erro ao enviar dados de admissão.');
+          }
+        }
+
+
+
+
+
+
+
+        function removerCandidatoDasObservacoes(nomeCandidato) {
+          // Seleciona todos os botões de excluir observação
+          const botoesExcluir = document.querySelectorAll('.btn-excluir-obs');
+
+          // Converte a NodeList para um array e itera sobre ele
+          Array.from(botoesExcluir).forEach((botao) => {
+            // Acessa o elemento pai duas vezes para chegar ao div que contém o botão e o nome do candidato
+            const divObservacao = botao.closest('.div-observacao');
+
+            // Confere se o nome do candidato no div corresponde ao que queremos excluir
+            if (divObservacao && divObservacao.dataset.candidato === nomeCandidato) {
+              // Dispara o evento de clique no botão de excluir
+              botao.click();
+            }
+          });
+        }
+
+
+
+        function atualizarTabelaAdmissoes() {
+          const tabelaHistorico = document.getElementById('tabelaHistoricoAdmissoes');
+          const tbody = tabelaHistorico.querySelector('tbody');
+
+          fetch(`/historico_admissoes`)
+            .then(response => response.json())
+            .then(admissao => {
+              tbody.innerHTML = ''; // Limpa o corpo da tabela antes de preencher com novos dados
+
+              admissao.forEach((admissao, index) => {
+
+                const nome = admissao.candidato || 'Nome não disponível';
+                const loja = admissao.loja || 'Loja não especificada';
+                const cargo = admissao.cargo || 'Cargo não disponível';
+                const origem = admissao.origem || 'Origem não especificada';
+                const definicao = admissao.definicao || '---';
+                const dataAdmissao = new Date(admissao.dataAdmissao);
+                const dataFormatada = formatarDataParaBrasileiro(dataAdmissao.toISOString().substring(0, 10));
+                const primeiroPeriodoExperiencia = calcularPeriodoExperiencia(dataAdmissao, 29);
+                const segundoPeriodoExperiencia = calcularPeriodoExperiencia(dataAdmissao, 29 + 60);
+                const primeiroFechamento = calcularContagemRegressiva(primeiroPeriodoExperiencia);
+                const segundoFechamento = calcularContagemRegressiva(segundoPeriodoExperiencia);
+                const tempoPermanenciaDias = calcularTempoPermanenciaDesdeAdmissao(admissao.dataAdmissao);
+
+                const bgColorClass = index % 2 === 0 ? 'bg-white' : 'bg-roxo'; // Alternância de cor de fundo
+                const tr = document.createElement('tr');
+                tr.className = bgColorClass; // Adiciona a classe de cor de fundo baseada no índice
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center">${dataFormatada}</td>
+                    <td class="py-3 px-4 text-center cursor-pointer nome-candidato">${nome}</td>
+                    <td class="py-3 px-4 text-center">${loja}</td>
+                    <td class="py-3 px-4 text-center">${cargo}</td>
+                    <td class="py-3 px-4 text-center">${origem}</td>
+                    <td class="py-3 px-4 text-center">${primeiroPeriodoExperiencia.toLocaleDateString('pt-BR')}</td>
+                    <td class="py-3 px-4 text-center">${primeiroFechamento}</td>
+                    <td class="py-3 px-4 text-center">${segundoPeriodoExperiencia.toLocaleDateString('pt-BR')}</td>
+                    <td class="py-3 px-4 text-center">${segundoFechamento}</td>
+                    <td class="py-3 px-4 text-center">${tempoPermanenciaDias}</td>
+                  `;
+                tbody.appendChild(tr);
+
+                // Adiciona evento de clique ao nome do candidato
+                const nomeTd = tr.querySelector('.nome-candidato');
+                nomeTd.onclick = function () {
+                  document.getElementById('modalNome').textContent = nome;
+                  document.getElementById('modalContratacao').style.display = 'block';
+                };
+              });
+
+              // Define eventos para fechar o modal
+              document.querySelector('.close').onclick = function () {
+                document.getElementById('modalContratacao').style.display = 'none';
+              };
+              document.getElementById('fecharModal').onclick = function () {
+                document.getElementById('modalContratacao').style.display = 'none';
+              };
+
+              // Fecha o modal ao clicar fora
+              window.onclick = function (event) {
+                if (event.target == document.getElementById('modalContratacao')) {
+                  document.getElementById('modalContratacao').style.display = 'none';
+                }
+              };
+            });
+        }
+
+
+        document.querySelectorAll('.excluirObservacao').forEach(btn => {
+          btn.onclick = function () {
+            const candidato = this.getAttribute('data-candidato');
+            if (confirm('Tem certeza que deseja excluir a observação deste candidato?')) {
+              excluirObservacao(candidato);
+            }
+          };
+        });
+
+        function excluirObservacao(candidato) {
+          fetch('/excluir_observacao', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ candidato: candidato }),
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                carregarEntrevistasComObservacoes(); // Recarrega a lista para refletir a remoção da observação
+              } else {
+                alert('Erro ao excluir a observação do candidato: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Erro ao excluir a observação do candidato:', error);
+              alert('Erro ao tentar excluir a observação do candidato.');
+            });
+        }
+
+
+
+
+        function abrirModalAdmissao(candidatoNome) {
+          document.getElementById('modalNome').textContent = candidatoNome;
+          document.getElementById('modalAdmissao').style.display = 'block';
+        }
+
+        function fecharModalAdmissao() {
+          document.getElementById('modalAdmissao').style.display = 'none';
+        }
+
+        // Função para abrir o modal de dispensa
+        function abrirModalDispensa(nomeCandidato) {
+          document.getElementById('modalNomeDispensa').textContent = nomeCandidato;
+          document.getElementById('modalDispensaContratado').style.display = 'block';
+        }
+
+        // Função para fechar o modal de dispensa
+        function fecharModalDispensa() {
+          document.getElementById('modalDispensaContratado').style.display = 'none';
+        }
+
+        // Evento para o botão de confirmar a dispensa
+        document.getElementById('confirmarDispensa').addEventListener('click', () => {
+
+          const nomeCandidato = document.getElementById('modalNomeDispensa').textContent;
+
+          const motivo = document.getElementById('motivoDispensaContratado').value;
+          fecharModalDispensa();
+        })
+
+        // Adiciona evento para o botão de fechar modal de dispensa
+        document.getElementById('fecharModalDispensa').addEventListener('click', fecharModalDispensa);
+
+
+        function calcularDatas(dataAdmissao) {
+          const dataContratacaoFormatada = new Date(dataContratacao);
+
+          // Calcular o primeiro período de experiência (29 dias após a data de contratação)
+          const primeiroPeriodoExperiencia = new Date(dataContratacaoFormatada);
+          primeiroPeriodoExperiencia.setDate(primeiroPeriodoExperiencia.getDate() + 29);
+
+          // Calcular o segundo período de experiência (89 dias após a contratação)
+          const segundoPeriodoExperiencia = new Date(dataContratacaoFormatada);
+          segundoPeriodoExperiencia.setDate(segundoPeriodoExperiencia.getDate() + 89);
+
+          return { primeiroPeriodoExperiencia, segundoPeriodoExperiencia };
+        }
+
+        function calcularPeriodoExperiencia(dataAdmissao, dias) {
+          const data = new Date(dataAdmissao);
+          data.setDate(data.getDate() + dias);
+          return data;
+        }
+
+        function calcularContagemRegressiva(dataFuturo) {
+          const hoje = new Date();
+          const diferencaTempo = dataFuturo.getTime() - hoje.getTime();
+          const diferencaDias = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
+          return diferencaDias >= 0 ? diferencaDias : '---'; // Retorna '---' se a data já passou
+        }
+
+        function calcularTempoPermanencia(dataInicioISO, dataFimISO) {
+          const inicio = new Date(dataInicioISO);
+          const fim = new Date(dataFimISO);
+          const diferencaTempo = fim.getTime() - inicio.getTime();
+          const diferencaDias = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
+          return diferencaDias; // Retorna a diferença em dias
+        }
+
+        function calcularTempoPermanenciaDesdeAdmissao(dataAdmissaoISO) {
+          const dataAdmissao = new Date(dataAdmissaoISO);
+          const agora = new Date(); // Obtém a data e hora atual
+          const diferencaTempo = agora.getTime() - dataAdmissao.getTime();
+          const diferencaDias = Math.floor(diferencaTempo / (1000 * 3600 * 24));
+          return diferencaDias; // Retorna a diferença em dias
+        }
+
+
+        function formatarDataParaBrasileiro(dataISO) {
+          if (dataISO && /^\d{4}-\d{2}-\d{2}$/.test(dataISO)) {
+            const [ano, mes, dia] = dataISO.split('-');
+            return `${dia}/${mes}/${ano}`;
+          }
+          return '---';
+          // Retornar '---' se a data for undefined ou não estiver no formato esperado
+        }
+
+        function removerCandidatoDaTabelaAdmissoes(nomeCandidato) {
+          const linhas = document.querySelectorAll('#tabelaHistoricoAdmissoes tbody tr');
+          linhas.forEach(linha => {
+            // Aqui assumimos que o nome do candidato está numa célula com a classe .nome-candidato
+            const nomeNaTabela = linha.querySelector('.nome-candidato').textContent.trim();
+            if (nomeNaTabela === nomeCandidato) {
+              linha.remove();
+            }
+          });
+        }
+
+        function removerCandidatoDaTabelaContratacoes(nomeCandidato) {
+          const linhas = document.querySelectorAll('#tabelaHistoricoContratacoes tbody tr');
+          linhas.forEach(linha => {
+            if (linha.querySelector('td').textContent === nomeCandidato) {
+              linha.remove();
+            }
+          });
+        }
+
+
+
+        function enviarContratacao(candidato) {
+          const dataContratacao = new Date().toISOString().split('T')[0];
+
+          fetch('/contratar_candidato', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              candidato: candidato.nome,
+              origem: candidato.origem,
+              loja: candidato.loja,
+              cargo: candidato.cargo,
+              dataAdmissao: candidato.dataAdmissao,
+              dataContratacao: dataContratacao,
+              admitido: false, // Adicionado para garantir a consistência do status
+              contratado: true  // Adicionado para garantir a consistência do status
+            })
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success && data.candidato) {
+                console.log('Candidato recebido do backend:', data.candidato); // Adicione esta linha para depuração
+                adicionarContratacaoNaTabela(data.candidato); // Certifique-se de que está passando o objeto de dados completo
+                removerCandidatoDaTabelaAdmissoes(data.candidato.candidato);
+                document.getElementById('modalContratacao').style.display = 'none';
+              } else {
+                alert('Erro ao contratar candidato: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Erro na requisição:', error);
+              alert('Erro ao enviar dados de contratação.');
+            });
+        }
+
+
+        function adicionarContratacaoNaTabela(candidato) {
+          if (!candidato.dataAdmissao) {
+            console.error('O objeto candidato não possui a propriedade dataAdmissao:', candidato);
+            // Lide com o erro apropriadamente, talvez mostrando uma mensagem ao usuário ou preenchendo com um valor padrão.
+            return;
+          }
+          const tabela = document.getElementById('tabelaHistoricoContratacoes').querySelector('tbody');
+          const linhaNova = document.createElement('tr');
+          linhaNova.innerHTML = `
+    <td class="py-3 px-4 text-center">${formatarDataParaBrasileiro(candidato.dataAdmissao)}</td>
+    <td class="py-3 px-4 text-center">${candidato.candidato}</td>
+    <td class="py-3 px-4 text-center">${candidato.loja}</td>
+    <td class="py-3 px-4 text-center">${candidato.cargo}</td>
+    <td class="py-3 px-4 text-center">${candidato.origem}</td>
+    <td class="py-3 px-4 text-center">${formatarDataParaBrasileiro(candidato.dataContratacao)}</td>
+  `;
+          tabela.appendChild(linhaNova);
+        }
+
+
+
+        function iniciarProcessoDeContratacaoOuDispensa() {
+          const nomeCandidato = document.getElementById('modalNome').textContent.trim();
+          const motivo = document.getElementById('motivoDispensa').value;
+          const origem = document.getElementById('origem').value;
+          const loja = document.getElementById('loja').value;
+          const cargo = document.getElementById('cargo').value;
+          const dataAdmissao = document.getElementById('dataAdmissao').value;
+
+          const candidato = {
+            nome: nomeCandidato,
+            origem,
+            loja,
+            cargo,
+            dataAdmissao
+          };
+
+          // Verifica o motivo selecionado para determinar se está contratando ou dispensando
+          if (motivo === 'Contratada') {
+            enviarContratacao(candidato);
+          } else if (motivo === 'DispensaEmpresa' || motivo === 'DispensaPessoal') {
+            // Altera o motivo para se adequar ao esperado pelo backend
+            const motivoFormatado = motivo.replace('Dispensa', 'Dispensa ').trim();
+            dispensarCandidato(candidato, motivoFormatado);
+          }
+        }
+
+        // Ouvinte de eventos para o botão de Confirmar que chama a função de iniciar o processo
+        document.getElementById('contratarCandidato').addEventListener('click', iniciarProcessoDeContratacaoOuDispensa);
+
+
+        function atualizarTabelaContratacao() {
+          const tabelaContratacoes = document.getElementById('tabelaHistoricoContratacoes');
+          const tbodyContratacoes = tabelaContratacoes.querySelector('tbody');
+
+          fetch(`/historico_contratacoes`)  // Esta rota precisa ser implementada no back-end
+            .then(response => response.json())
+            .then(contratacoes => {
+              tbodyContratacoes.innerHTML = ''; // Limpa o corpo da tabela
+
+              contratacoes.forEach((contratacao, index) => {
+                const nome = contratacao.candidato || 'Nome não disponível';
+                const loja = contratacao.loja || 'Loja não especificada';
+                const cargo = contratacao.cargo || 'Cargo não disponível';
+                const origem = contratacao.origem || 'Origem não especificada';
+                const dataAdmissao = contratacao.dataAdmissao ? formatarDataParaBrasileiro(contratacao.dataAdmissao) : '---';
+                const dataContratacao = contratacao.dataContratacao ? formatarDataParaBrasileiro(contratacao.dataContratacao) : '---';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+          <td class="py-3 px-4 text-center">${dataAdmissao}</td>
+          <td class="py-3 px-4 text-center cursor-pointer" id="nomeCandidato_${index}">${nome}</td>
+          <td class="py-3 px-4 text-center">${loja}</td>
+          <td class="py-3 px-4 text-center">${cargo}</td>
+          <td class="py-3 px-4 text-center">${origem}</td>
+          <td class="py-3 px-4 text-center">${dataContratacao}</td>
+        `;
+
+                const nomeTd = tr.querySelector(`#nomeCandidato_${index}`);
+                nomeTd.addEventListener('click', function () {
+                  abrirModalDispensa(nome); // Função para abrir o modal de dispensa
+                });
+                // Aplica a classe para alterar a cor das linhas alternadamente, se necessário
+                tr.classList.add(index % 2 === 0 ? 'bg-white' : 'bg-verde');
+                tbodyContratacoes.appendChild(tr);
+              });
+            })
+            .catch(error => {
+              console.error('Erro ao buscar dados de contratação:', error);
+              // Trate o erro, por exemplo, mostrando uma mensagem para o usuário
+            });
+        }
+
+
+
+        function dispensarCandidato(candidato, motivo) {
+          // Configure a data de dispensa como a data atual
+          const dataDispensa = new Date().toISOString().split('T')[0];
+
+          fetch('/dispensar_candidato', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              candidato: candidato.nome,
+              motivo: motivo,
+              dataDispensa: dataDispensa,
+              dataAdmissao: candidato.dataAdmissao
+            })
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                console.log('Candidato recebido do backend:', data.candidato);
+                adicionarDispensaNaTabela(data.candidato); // Adicione esta função para atualizar a tabela de dispensas
+                removerCandidatoDaTabelaAdmissoes(data.candidato);
+                removerCandidatoDaTabelaContratacoes(data.candidato);
+                fecharModalDispensa();
+                document.getElementById('modalContratacao').style.display = 'none';
+                atualizarTabelaContratacao();
+                atualizarTabelaAdmissoes();
+              } else {
+                alert('Erro ao dispensar candidato: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Erro na requisição:', error);
+              alert('Erro ao enviar dados de dispensa.');
+            });
+        }
+
+
+        function adicionarDispensaNaTabela(candidato) {
+          // Assegure-se de que as datas estão sendo interpretadas corretamente
+          const dataAdmissaoFormatada = candidato.dataAdmissao ? formatarDataParaBrasileiro(candidato.dataAdmissao) : '---';
+          const dataDispensaFormatada = candidato.dataDispensa ? formatarDataParaBrasileiro(candidato.dataDispensa) : '---';
+
+          const nome = candidato.candidato || 'Indisponível';
+          const loja = candidato.loja || 'Indisponível';
+          const cargo = candidato.cargo || 'Indisponível';
+          const origem = candidato.origem || 'Indisponível';
+          const motivoDispensa = candidato.motivoDispensa || '---';
+          const tempoPermanencia = calcularTempoPermanencia(candidato.dataAdmissao, candidato.dataDispensa) + ' dias';
+
+          const tabela = document.getElementById('tabelaHistoricoDispensas').querySelector('tbody');
+          const linhaNova = document.createElement('tr');
+          linhaNova.innerHTML = `
+        <td class="py-3 px-4 text-center">${dataAdmissaoFormatada}</td>
+        <td class="py-3 px-4 text-center">${nome}</td>
+        <td class="py-3 px-4 text-center">${loja}</td>
+        <td class="py-3 px-4 text-center">${cargo}</td>
+        <td class="py-3 px-4 text-center">${origem}</td>
+        <td class="py-3 px-4 text-center">${dataDispensaFormatada}</td>
+        <td class="py-3 px-4 text-center">${motivoDispensa}</td>
+        <td class="py-3 px-4 text-center">${tempoPermanencia}</td>
+    `;
+          tabela.appendChild(linhaNova);
+        }
+
+
+
+
+        function atualizarTabelaDispensas() {
+          const tabelaHistorico = document.getElementById('tabelaHistoricoDispensas');
+          const tbody = tabelaHistorico.querySelector('tbody');
+
+          fetch(`/historico_dispensas`)
+            .then(response => response.json())
+            .then(dispensas => {
+              tbody.innerHTML = ''; // Limpa o corpo da tabela
+
+              dispensas.forEach((dispensa, index) => {
+                const nome = dispensa.candidato || 'Nome não disponível';
+                const loja = dispensa.loja || 'Loja não especificada';
+                const cargo = dispensa.cargo || 'Cargo não disponível';
+                const origem = dispensa.origem || 'Origem não especificada';
+                const definicao = dispensa.motivoDispensa || '---';
+                const dataDispensa = new Date(dispensa.dataDispensa);
+                const dataFormatada = formatarDataParaBrasileiro(dataDispensa.toISOString().substring(0, 10));
+                const tempoPermanenciaDias = calcularTempoPermanencia(dispensa.dataAdmissao, dispensa.dataDispensa) + ' dias';
+
+                const bgColorClass = index % 2 === 0 ? 'bg-white' : 'bg-rosa'; // Alternância de cor de fundo
+
+                const tr = document.createElement('tr');
+                tr.className = bgColorClass;
+
+                tr.innerHTML = `
+          <td class="py-3 px-4 text-center">${formatarDataParaBrasileiro(dispensa.dataAdmissao)}</td>
+          <td class="py-3 px-4 text-center">${nome}</td>
+          <td class="py-3 px-4 text-center">${loja}</td>
+          <td class="py-3 px-4 text-center">${cargo}</td>
+          <td class="py-3 px-4 text-center">${origem}</td>
+          <td class="py-3 px-4 text-center">${dataFormatada}</td>
+          <td class="py-3 px-4 text-center">${definicao}</td>
+          <td class="py-3 px-4 text-center">${tempoPermanenciaDias}</td>
+        `;
+
+                tbody.appendChild(tr);
+              });
+            })
+            .catch(error => {
+              console.error('Erro ao carregar dispensas:', error);
+            });
+        }
+
+
+        function iniciarProcessoDeDispensaContratado() {
+          const nomeCandidato = document.getElementById('modalNomeDispensa').textContent.trim();
+          const motivoDispensa = document.getElementById('motivoDispensaContratado').value;
+
+          console.log("Motivo selecionado no modal:", motivoDispensa); // Adicione esta linha para debugar o valor do motivo
+
+          dispensarContratado(nomeCandidato, motivoDispensa);
+        }
+
+        // Ouvinte de evento para o botão de dispensa no modal de contratações
+        document.getElementById('confirmarDispensa').addEventListener('click', iniciarProcessoDeDispensaContratado);
+
+        function dispensarContratado(nomeCandidato, motivoDispensa) {
+          const dataDispensa = new Date().toISOString().split('T')[0];
+
+          fetch('/dispensar_contratado', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              candidato: nomeCandidato,
+              motivoDispensa: motivoDispensa,
+              dataDispensa: dataDispensa
+            })
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                console.log('Candidato recebido do backend:', data.candidato);
+                // Outras ações após a dispensa com sucesso
+                fecharModalDispensa();
+              } else {
+                alert('Erro ao dispensar candidato: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Erro na requisição:', error);
+              alert('Erro ao enviar dados de dispensa.');
+            });
+        }
+
+
+
+      </script>
+
+      <style>
+        /* CSS responsável pela observação editável */
+        .observacao-editavel {
+          width: 100%;
+          border: 1px solid #ddd;
+          margin: 5px 0;
+        }
+
+        .btn-salvar-obs {
+          background-color: #6b21a8;
+          color: white;
+          border: none;
+          padding: 5px 10px;
+          margin-top: 5px;
+          cursor: pointer;
+        }
+
+        .div-observacao:hover {
+          background-color: #f3e8ff;
+          /* Cor de fundo ao passar o mouse */
+
+        }
+
+        .div-observacao:hover .observacao-content {
+          background-color: #e9d8fd;
+          /* Cor de fundo mais clara ao passar o mouse */
+          cursor: text;
+          /* Muda o cursor para indicar que é editável */
+        }
+
+        .observacao-content {
+          transition: background-color 0.3s;
+          /* Suaviza a transição de cor */
+          padding: 4px;
+          /* Adiciona um pouco de espaço interno */
+        }
+
+
+
+        /* CSS para botão contratar */
+        .btn-contratar,
+        .btn-excluir-obs {
+          background-color: #4f46e5;
+          /* Azul para o botão Contratar */
+          color: white;
+          border: none;
+          padding: 5px 10px;
+          cursor: pointer;
+          margin-left: 10px;
+          font-size: 0.875rem;
+          /* Ajusta o tamanho da fonte se necessário */
+          border-radius: 4px;
+          /* Bordas arredondadas */
+          transition: background-color 0.3s;
+          /* Transição suave para o background-color */
+        }
+
+        .btn-excluir-obs {
+          background-color: #dc3545;
+          /* Vermelho para o botão Excluir Observação */
+        }
+
+        .btn-contratar:hover {
+          background-color: #3730a3;
+          /* Um azul mais escuro para o hover */
+        }
+
+        .btn-excluir-obs:hover {
+          background-color: #c82333;
+          /* Um vermelho mais escuro para o hover */
+        }
+
+
+
+
+
+        /* CSS para o modal */
+        .modal {
+          display: none;
+          /* Hidden by default */
+          position: fixed;
+          /* Stay in place */
+          z-index: 1;
+          /* Sit on top */
+          left: 0;
+          top: 0;
+          width: 100%;
+          /* Full width */
+          height: 100%;
+          /* Full height */
+          overflow: auto;
+          /* Enable scroll if needed */
+          background-color: rgba(0, 0, 0, 0.4);
+          /* Black w/ opacity */
+        }
+
+        .modal-content {
+          position: relative;
+          background-color: #fff;
+          /* White background for the content */
+          margin: 15% auto;
+          /* 15% from the top and centered */
+          padding: 0;
+          /* No padding, we'll set it on the elements */
+          border: none;
+          /* No border */
+          width: 30%;
+          /* Width can be changed as needed */
+          box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+          /* Shadow for a bit of depth */
+          border-radius: 10px;
+          /* Rounded corners */
+        }
+
+        .modal-header {
+          background: linear-gradient(135deg, #5424b4, #7c5cbb);
+          /* Purple gradient header */
+          padding: 10px 20px;
+          /* Padding around the header content */
+          color: white;
+          /* White text */
+          border-top-left-radius: 10px;
+          /* Rounded corners on top-left */
+          border-top-right-radius: 10px;
+          /* Rounded corners on top-right */
+        }
+
+        .modal-body p {
+          font-family: 'Arial';
+          /* Ou qualquer outra fonte de sua escolha */
+          font-size: 18px;
+          /* Tamanho da fonte */
+          color: #4d4c4c;
+          /* Cor do texto */
+          line-height: 1.5;
+          /* Espaçamento entre linhas para melhor legibilidade */
+          padding: 20px;
+          font-weight: bold;
+          /* Bold font weight */
+        }
+
+
+        .modal-footer {
+          padding: 10px 20px;
+          /* Padding around the footer */
+          text-align: right;
+          /* Align buttons to the right */
+          border-bottom-left-radius: 10px;
+          /* Rounded corners on bottom-left */
+          border-bottom-right-radius: 10px;
+          /* Rounded corners on bottom-right */
+        }
+
+        .modal-footer button {
+          background: linear-gradient(135deg, #5424b4, #633bb4);
+          /* Purple gradient buttons */
+          color: white;
+          /* White text */
+          padding: 10px 15px;
+          /* Padding inside the buttons */
+          border: none;
+          /* No border */
+          border-radius: 5px;
+          /* Slightly rounded corners for the buttons */
+          cursor: pointer;
+          /* Pointer cursor on hover */
+          /* Margin to the left to space out buttons */
+          transition: background 0.3s ease;
+          /* Transition for background color */
+        }
+
+        .modal-footer button:hover {
+          background: linear-gradient(135deg, #5424b4, #7c5cbb);
+          /* Darker purple gradient on hover */
+        }
+
+        .close {
+          color: white;
+          /* White color for the close button */
+          float: right;
+          /* Position it to the right */
+          font-size: 28px;
+          /* Larger size font */
+          font-weight: bold;
+          /* Bold font weight */
+          margin-right: -10px;
+          /* Align it properly with the right side */
+          margin-top: -10px;
+          /* Align it properly with the top */
+        }
+
+        .close:hover,
+        .close:focus {
+          color: #f1f1f1;
+          /* Light grey color on hover/focus */
+          text-decoration: none;
+          /* No underline */
+          cursor: pointer;
+          /* Pointer cursor on hover */
+        }
+
+        .modal-header h2 {
+          text-align: center;
+          /* Centraliza o texto do cabeçalho */
+          margin: 0;
+          /* Remove a margem padrão do h2 */
+        }
+
+        .modal-body {
+          text-align: center;
+          /* Centraliza o texto do corpo do modal */
+        }
+
+        .modal-footer {
+          text-align: center;
+          /* Centraliza os botões no rodapé do modal */
+        }
+
+        .modal-footer button {
+          /* ... suas regras existentes ... */
+          display: inline-block;
+          /* Isso permite que os botões sejam centralizados juntos */
+          margin: 0 10px;
+          /* Espaçamento entre os botões */
+        }
+
+        /* Estilo para o select e o botão */
+        #origem {
+          display: block;
+          width: 50%;
+          /* Tamanho menor */
+          margin: 20px auto;
+          /* Centraliza e adiciona espaço em cima e embaixo */
+          padding: 5px;
+          /* Espaçamento interno mais confortável */
+          border-radius: 10px;
+          /* Bordas mais arredondadas */
+          border: 1px solid #ddd;
+          /* Borda sutil */
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+          /* Sombra interna leve */
+        }
+
+        #cargo {
+          display: block;
+          width: 50%;
+          /* Tamanho menor */
+          margin: 20px auto;
+          /* Centraliza e adiciona espaço em cima e embaixo */
+          padding: 5px;
+          /* Espaçamento interno mais confortável */
+          border-radius: 10px;
+          /* Bordas mais arredondadas */
+          border: 1px solid #ddd;
+          /* Borda sutil */
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+          /* Sombra interna leve */
+        }
+
+        #loja {
+          display: block;
+          width: 50%;
+          /* Tamanho menor */
+          margin: 20px auto;
+          /* Centraliza e adiciona espaço em cima e embaixo */
+          padding: 5px;
+          /* Espaçamento interno mais confortável */
+          border-radius: 10px;
+          /* Bordas mais arredondadas */
+          border: 1px solid #ddd;
+          /* Borda sutil */
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+          /* Sombra interna leve */
+        }
+
+        #dataAdmissao {
+          display: block;
+          width: 50%;
+          /* Tamanho menor */
+          margin: 20px auto;
+          /* Centraliza e adiciona espaço em cima e embaixo */
+          padding: 5px;
+          /* Espaçamento interno mais confortável */
+          border-radius: 10px;
+          /* Bordas mais arredondadas */
+          border: 1px solid #ddd;
+          /* Borda sutil */
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+          /* Sombra interna leve */
+        }
+
+        #motivoDispensa {
+          display: block;
+          width: 50%;
+          /* Tamanho menor */
+          margin: 20px auto;
+          /* Centraliza e adiciona espaço em cima e embaixo */
+          padding: 5px;
+          /* Espaçamento interno mais confortável */
+          border-radius: 10px;
+          /* Bordas mais arredondadas */
+          border: 1px solid #ddd;
+          /* Borda sutil */
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+          /* Sombra interna leve */
+        }
+
+        .text-rosa {
+          color: #bc145c;
+          /* Esta é uma cor rosa semelhante à do Tailwind 'pink-600' */
+        }
+
+        .text-verde {
+          color: #0c343d;
+        }
+
+        .fundo-rosa {
+          background-color: #bc145c;
+          /* Esta é uma cor rosa semelhante à do Tailwind 'pink-600' */
+        }
+
+        .fundo-verde {
+          background-color: #0c343d;
+        }
+
+        .bg-verde {
+          background-color: #007f9c15;
+        }
+
+        .bg-roxo {
+          background-color: #5424b410;
+        }
+
+        .bg-rosa {
+          background-color: #c5005510;
+        }
+      </style>
+</body>
+
+</html>

@@ -1,0 +1,15 @@
+{
+    "descricao_vaga": "Candidato Midias Sociais/Rede Sociais: rede social, Facebook, Instagram, WhatsApp. Planejar e produzir conte\u00fado. Marketing, Publicidade, tr\u00e1fego pago, an\u00fancio pago, canva, photoshop, design gr\u00e1fico, edi\u00e7\u00e3o de v\u00eddeo.\n",
+    "pesos_palavras_chave": {
+        "canva": 22.0,
+        "photoshop": 25.0,
+        "facebook": 2.7,
+        "instagram": 2.7,
+        "design": 1.0,
+        "v\u00eddeo": 2.0,
+        "marketing": 1.0,
+        "publicidade": 2.0,
+        "anuncio": 3.0,
+        "tr\u00e1fego": 8.0
+    }
+}

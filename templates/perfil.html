@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{{url_for('static',filename='dist/css/output.css')}}" />
+  <link href="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.min.css" rel="stylesheet" />
+  <title>Criar Perfil Personalizado</title>
+</head>
+
+<body>
+  {% include 'menu.html' %}
+
+  <div class="container mx-auto px-4 py-12 mt-16 shadow-lg bg-white rounded-lg">
+    <!-- Adiciona margem superior, sombra, e background branco -->
+    <h2 class="text-2xl font-semibold text-purple-700 mb-6"></h2>
+    <form id="perfilForm" class="space-y-6">
+      <div class="container mx-auto px-4 py-8">
+        <h2 class="text-2xl font-semibold text-purple-700 mb-6">
+          Criar Perfil Personalizado
+        </h2>
+        <div>
+          <label for="descricaoVagaPerfil" class="block text-sm font-medium text-gray-700">Descrição da Vaga:</label>
+          <textarea id="descricaoVagaPerfil" rows="5"
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
+            placeholder="Digite a descrição da vaga aqui..."></textarea>
+        </div>
+
+        <div id="nomePerfilDiv" class="space-y-4">
+          <div>
+            <label for="nomePerfilInput" class="block text-sm font-medium text-gray-700">Nome do Perfil:</label>
+            <input type="text" id="nomePerfilInput"
+              class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
+              placeholder="Digite o nome que você quer chamar o novo perfil" />
+          </div>
+
+          <div id="palavrasChave" class="flex space-x-4">
+            <input type="text" id="palavraChaveInput"
+              class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
+              placeholder="Digite uma palavra-chave" />
+            <input type="number" id="pontuacaoInput"
+              class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
+              placeholder="Digite a pontuação" />
+            <button type="button" onclick="adicionarPalavraChave()"
+              class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-opacity-50">
+              Adicionar
+            </button>
+          </div>
+        </div>
+
+        <div id="listaPalavrasChave" class="space-y-4">
+          <!-- As palavras-chave adicionadas aparecerão aqui -->
+        </div>
+
+        <button type="button" onclick="salvarPerfil()"
+          class="w-full mt-4 py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50">
+          Salvar Perfil
+        </button>
+    </form>
+  </div>
+  </form>
+  </div>
+
+  <div class="container mx-auto px-4 py-8">
+    <h3 class="text-2xl font-semibold text-purple-700 mb-4">
+      Visualizar Perfis disponíveis
+    </h3>
+
+    <div class="shadow-lg bg-white rounded-lg p-4 mb-6">
+      <label for="selecionarPerfil" class="block text-sm font-medium text-gray-700">Selecione um Perfil:</label>
+      <select id="selecionarPerfil" onchange="exibirPerfilSelecionado()"
+        class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"></select>
+    </div>
+
+    <div id="perfilSelecionado" class="shadow-lg bg-white rounded-lg p-4">
+      <h3 class="text-xl font-semibold text-purple-700 mb-4">
+        Descrição do Perfil
+      </h3>
+      <div id="descricaoVagaContainer">
+        <p id="descricaoVaga" class="mb-4">[Descrição da Vaga]</p>
+        <!-- Substituir o ícone de editar pela palavra "Alterar" -->
+        <button id="editarDescricaoIcone"
+          class="bg-blue-500 text-white font-bold py-1 px-3 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline">
+          Editar
+        </button>
+        <button id="salvarDescricaoBtn"
+          class="bg-green-500 text-white font-bold py-1 px-3 rounded hover:bg-green-700 focus:outline-none focus:shadow-outline hidden" style="margin-bottom: 5px;">
+          Salvar
+        </button>
+
+        <textarea id="editarDescricaoInput" class="mb-4" style="display: none; width: 100%; height: 150px;"></textarea>
+      </div>
+      <h4 class="font-semibold mb-2">
+        Pontuação das Palavras-chave:
+      </h4>
+      <table id="tabelaPalavrasChave" class="w-full text-sm text-left table-auto">
+        <thead class="text-xs uppercase bg-purple-700 text-white">
+          <tr>
+            <th class="py-3 px-6 text-center">Palavra-chave</th>
+            <th class="py-3 px-6 text-center">Pontuação</th>
+            <th class="py-3 px-6 text-center">Alterações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="linhaAdicionarPalavraChave" class="hidden">
+            <td class="border px-4 py-2 text-center">
+              <input type="text" id="inputAdicionarPalavraChave" placeholder="Nova palavra-chave">
+            </td>
+            <td class="border px-4 py-2 text-center">
+              <input type="number" id="inputAdicionarPontuacao" placeholder="Pontuação">
+            </td>
+            <td class="border px-4 py-2 text-center">
+              <button onclick="adicionarPalavraChavePerfilSelecionado()"
+                class="bg-green-500 text-white font-bold py-1 px-3 rounded hover:bg-green-700">Salvar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- Linha para adicionar novas palavras-chave -->
+      <div id="adicionarNovaPalavraChave" class="mt-4">
+        <h4 class="font-semibold mb-2">
+          Adicionar Nova Palavra-chave:
+          <button onclick="mostrarCamposAdicao()"
+            class="bg-blue-500 text-white font-bold py-1 px-3 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline">
+            Adicionar
+          </button>
+        </h4>
+        <div id="linhaAdicionarPalavraChave" class="hidden">
+          <div class="flex space-x-4">
+            <input type="text" id="inputAdicionarPalavraChave" class="block w-full p-2 border"
+              placeholder="Nova palavra-chave">
+            <input type="number" id="inputAdicionarPontuacao" class="block w-full p-2 border" placeholder="Pontuação">
+            <button onclick="adicionarPalavraChavePerfilSelecionado()"
+              class="bg-green-500 text-white font-bold py-1 px-3 rounded hover:bg-green-700">
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Defina palavrasChave como um array vazio para garantir que seja sempre um array
+    let palavrasChave = [];
+
+
+    function adicionarPalavraChave() {
+      const palavraChaveInput = document.getElementById("palavraChaveInput").value;
+      const pontuacaoInput = document.getElementById("pontuacaoInput").value;
+
+      if (palavraChaveInput && pontuacaoInput) {
+        // Adiciona a nova palavra-chave ao array
+        palavrasChave.push({
+          palavraChave: palavraChaveInput,
+          pontuacao: parseFloat(pontuacaoInput),
+        });
+
+        // Limpa os campos de entrada
+        document.getElementById("palavraChaveInput").value = "";
+        document.getElementById("pontuacaoInput").value = "";
+
+        // Atualiza a lista de palavras-chave na tela
+        atualizarListaPalavrasChave();
+      }
+    }
+
+    function atualizarListaPalavrasChave() {
+      const listaPalavrasChave = document.getElementById("listaPalavrasChave");
+      listaPalavrasChave.innerHTML = ""; // Limpa a lista atual
+
+      palavrasChave.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center mt-2';
+        div.innerHTML = `
+      <div id="palavra-${index}">${item.palavraChave}: ${item.pontuacao}</div>
+      <button onclick="removerPalavraChave(${index})" class="text-sm bg-red-500 text-white rounded px-2 py-1 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Remover</button>
+    `;
+        listaPalavrasChave.appendChild(div);
+      });
+    }
+
+    function editarPalavraChave(index) {
+      // Mostra os campos de edição e o botão Salvar
+      document.getElementById(`input-palavra-${index}`).style.display = 'flex';
+      document.getElementById(`salvar-${index}`).style.display = 'inline';
+      // Oculta o texto e o botão Editar
+      document.getElementById(`palavra-${index}`).style.display = 'none';
+      document.getElementById(`editar-${index}`).style.display = 'none';
+    }
+
+    function salvarEdicao(index, perfilNome) {
+      const palavraInput = document.querySelector(`#input-palavra-${index} .palavra-input`);
+      const pontuacaoInput = document.querySelector(`#input-palavra-${index} .pontuacao-input`);
+
+      if (palavraInput && pontuacaoInput) {
+        const palavraAntiga = document.getElementById(`palavra-${index}`).textContent.split(':')[0].trim();
+        const novaPalavra = palavraInput.value;
+        const novaPontuacao = pontuacaoInput.value;
+
+        const dadosAtualizados = {
+          nome_perfil: perfilNome, // nome do perfil para encontrar o arquivo
+          palavra_antiga: palavraAntiga, // palavra-chave original
+          nova_palavra: novaPalavra, // nova palavra-chave
+          pontuacao: novaPontuacao // nova pontuação
+        };
+
+        // Enviar requisição para o servidor
+        fetch("/atualizar_perfil", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dadosAtualizados),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.mensagem);
+            // Atualiza a interface
+            document.getElementById(`palavra-${index}`).textContent = `${novaPalavra}: ${novaPontuacao}`;
+            // Reverte para o modo de visualização
+            document.getElementById(`input-palavra-${index}`).style.display = 'none';
+            document.getElementById(`salvar-${index}`).style.display = 'none';
+            document.getElementById(`palavra-${index}`).style.display = 'block';
+            document.getElementById(`editar-${index}`).style.display = 'inline';
+            // Recarrega o perfil
+            recarregarPerfil(perfilNome);
+          })
+          .catch((error) => {
+            console.error("Erro ao salvar a edição:", error);
+          });
+      }
+    }
+
+
+    function removerPalavraChave(index) {
+      // Remove a palavra-chave do array
+      palavrasChave.splice(index, 1);
+      // Atualiza a lista de palavras-chave na tela
+      atualizarListaPalavrasChave();
+    }
+
+    // Certifique-se de chamar atualizarListaPalavrasChave() quando a página carregar para mostrar qualquer palavra-chave já armazenada
+    document.addEventListener("DOMContentLoaded", atualizarListaPalavrasChave);
+
+
+    function salvarPerfil() {
+      const descricaoVaga = document.getElementById(
+        "descricaoVagaPerfil"
+      ).value;
+      const nomePerfil = document.getElementById("nomePerfilInput").value;
+
+      const palavrasChavePerfil = palavrasChave.reduce((acc, current) => {
+        acc[current.palavraChave] = current.pontuacao;
+        return acc;
+      }, {});
+
+      if (!nomePerfil) {
+        alert("Por favor, forneça um nome para o perfil.");
+        return;
+      }
+
+      if (Object.keys(palavrasChavePerfil).length === 0) {
+        alert(
+          "Por favor, adicione pelo menos uma palavra-chave com pontuação."
+        );
+        return;
+      }
+
+      const dadosPerfil = {
+        nome_perfil: nomePerfil,
+        perfil: {
+          descricao_vaga: descricaoVaga,
+          pesos_palavras_chave: palavrasChavePerfil,
+        },
+      };
+
+      fetch("/salvar_perfil", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dadosPerfil),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          alert(data.mensagem);
+          window.location.reload(); // Recarrega a página para refletir as mudanças
+        })
+        .catch((error) => {
+          console.error("Erro ao salvar perfil:", error);
+          alert("Erro ao salvar perfil: " + error.message);
+        });
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+      const baixarCurriculosBtn = document.querySelector(
+        "a[href='/executar_gmail']"
+      );
+      if (baixarCurriculosBtn) {
+        baixarCurriculosBtn.addEventListener("click", function (event) {
+          event.preventDefault();
+          fetch("/executar_gmail")
+            .then((response) => response.json())
+            .then((data) => alert(data.mensagem))
+            .catch((error) => alert("Erro ao executar o script: " + error));
+        });
+      }
+    });
+
+    // Remova a chamada à função carregarPerfilArmazenado para evitar seleção automática
+    document.addEventListener("DOMContentLoaded", () => {
+      carregarPerfis(); // Carrega a lista de perfis
+      document.getElementById("selecionarPerfil").addEventListener("change", exibirPerfilSelecionado);
+    });
+
+    function carregarPerfis() {
+      fetch("/PERFIS")
+        .then((response) => response.json())
+        .then((perfis) => {
+          const selecionarPerfil = document.getElementById("selecionarPerfil");
+          selecionarPerfil.innerHTML = '<option value="" disabled selected>Selecione um Perfil</option>';
+          perfis.forEach((perfil) => {
+            const option = document.createElement("option");
+            option.value = perfil;
+            option.textContent = perfil.replace(".json", "");
+            selecionarPerfil.appendChild(option);
+          });
+        })
+        .catch((error) => console.error("Erro ao carregar perfis:", error));
+    }
+
+    // Adiciona a chamada à função carregarPerfis quando o DOM estiver pronto
+    document.addEventListener("DOMContentLoaded", carregarPerfis);
+
+
+
+    function recarregarPerfil(perfilNome) {
+      fetch(`/PERFIS/${perfilNome}.json`)
+        .then((response) => response.json())
+        .then((dadosPerfil) => {
+          document.getElementById("descricaoVaga").textContent = dadosPerfil.descricao_vaga;
+          const tabela = document.getElementById("tabelaPalavrasChave").querySelector("tbody");
+          tabela.innerHTML = "";
+          Object.entries(dadosPerfil.pesos_palavras_chave).forEach(([palavra, pontuacao], index) => {
+            const tr = document.createElement("tr");
+            tr.className = index % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-200";
+            tr.innerHTML = `
+          <td class="border px-4 py-2 text-center">
+            <span id="palavra-${index}">${palavra}</span>
+            <input type="text" id="edit-palavra-${index}" class="hidden" value="${palavra}">
+          </td>
+          <td class="border px-4 py-2 text-center">
+            <span id="pontuacao-${index}">${pontuacao}</span>
+            <input type="number" id="edit-pontuacao-${index}" class="hidden" value="${pontuacao}">
+          </td>
+          <td class="border px-4 py-2 text-center">
+            <button onclick="editarPerfil(${index})" class="bg-orange-500 text-white font-bold py-1 px-3 rounded hover:bg-orange-600 focus:outline-none focus:shadow-outline">Editar</button>
+
+            <button id="salvar-${index}" onclick="salvarEdicao(${index}, '${perfilNome}')" class="bg-green-500 text-white font-bold py-1 px-3 rounded hover:bg-green-600 focus:outline-none focus:shadow-outline hidden">Salvar</button>
+
+            <button onclick="removerPalavraChavePerfil(${index}, '${perfilNome}', '${palavra}')" class="bg-red-500 text-white font-bold py-1 px-3 rounded hover:bg-red-600 focus:outline-none focus:shadow-outline">Remover</button>
+          </td>`;
+            tabela.appendChild(tr);
+          });
+        })
+        .catch((error) => console.error("Erro ao carregar detalhes do perfil:", error));
+    }
+
+    function carregarPerfilArmazenado() {
+      const perfilArmazenado = localStorage.getItem("perfilSelecionado");
+      if (perfilArmazenado) {
+        const selecionarPerfil = document.getElementById("selecionarPerfil");
+        const options = selecionarPerfil.options;
+        for (let i = 0; i < options.length; i++) {
+          if (options[i].value === perfilArmazenado) {
+            selecionarPerfil.selectedIndex = i;
+            recarregarPerfil(perfilArmazenado);
+            break;
+          }
+        }
+      }
+    }
+
+    function exibirPerfilSelecionado() {
+      const selecionarPerfil = document.getElementById("selecionarPerfil");
+      const perfilNome = selecionarPerfil.value;
+      if (perfilNome) {
+        localStorage.setItem("perfilSelecionado", perfilNome);
+        recarregarPerfil(perfilNome); // Chama a função para carregar os detalhes do perfil selecionado
+      } else {
+        // Limpa os detalhes do perfil pois nenhum perfil está selecionado
+        limparDetalhesDoPerfil();
+      }
+    }
+
+    function limparDetalhesDoPerfil() {
+      document.getElementById("descricaoVaga").textContent = '';
+      document.getElementById("editarDescricaoInput").value = ''; // Limpa o campo de edição também
+      document.getElementById("editarDescricaoIcone").style.display = 'block';
+      document.getElementById("salvarDescricaoBtn").style.display = 'none';
+      const tabela = document.getElementById("tabelaPalavrasChave").querySelector("tbody");
+      tabela.innerHTML = '';
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      carregarPerfis();
+      document.getElementById("selecionarPerfil").addEventListener("change", exibirPerfilSelecionado);
+      exibirPerfilSelecionado(); // Isso irá carregar os detalhes do perfil ao carregar a página
+    });
+
+
+    function carregarDadosDoPerfil(perfilNome, callback) {
+      fetch(`/PERFIS/${encodeURIComponent(perfilNome)}.json`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(dadosPerfil => {
+          callback(dadosPerfil); // Chama o callback com os dados do perfil
+        })
+        .catch(error => {
+          console.error("Erro ao carregar dados do perfil:", error);
+        });
+    }
+
+
+
+    function editarPerfil(index) {
+      // Mostrar inputs e ocultar spans
+      const palavraEl = document.getElementById(`palavra-${index}`);
+      const pontuacaoEl = document.getElementById(`pontuacao-${index}`);
+      const editPalavraEl = document.getElementById(`edit-palavra-${index}`);
+      const editPontuacaoEl = document.getElementById(`edit-pontuacao-${index}`);
+      const salvarBtn = document.getElementById(`salvar-${index}`);
+      const editarBtn = document.querySelector(`button[onclick='editarPerfil(${index})']`);
+
+      if (palavraEl && pontuacaoEl && editPalavraEl && editPontuacaoEl && salvarBtn && editarBtn) {
+        palavraEl.classList.add("hidden");
+        pontuacaoEl.classList.add("hidden");
+        editPalavraEl.classList.remove("hidden");
+        editPontuacaoEl.classList.remove("hidden");
+        salvarBtn.classList.remove("hidden");
+        editarBtn.classList.add("hidden");
+      } else {
+        console.error('Um ou mais elementos necessários para edição não foram encontrados.');
+      }
+    }
+
+
+    function salvarEdicao(index, perfilNome) {
+      const editPalavraEl = document.getElementById(`edit-palavra-${index}`);
+      const editPontuacaoEl = document.getElementById(`edit-pontuacao-${index}`);
+      const palavraEl = document.getElementById(`palavra-${index}`);
+      const pontuacaoEl = document.getElementById(`pontuacao-${index}`);
+      const salvarBtn = document.getElementById(`salvar-${index}`);
+      const editarBtn = document.querySelector(`button[onclick='editarPerfil(${index})']`);
+
+      if (editPalavraEl && editPontuacaoEl && palavraEl && pontuacaoEl && salvarBtn && editarBtn) {
+        const novaPalavra = editPalavraEl.value;
+        const novaPontuacao = editPontuacaoEl.value;
+
+        // Substitua '/atualizar_perfil' pelo endpoint correto do seu servidor.
+        fetch("/atualizar_perfil", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nome_perfil: perfilNome,
+            palavra_antiga: palavraEl.textContent,
+            nova_palavra: novaPalavra,
+            pontuacao: novaPontuacao
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.mensagem);
+            recarregarPerfil(perfilNome);
+          })
+          .catch((error) => {
+            console.error("Erro ao salvar edição:", error);
+          });
+        // Após a atualização, ocultar os campos de entrada e mostrar os spans
+        editPalavraEl.classList.add("hidden");
+        editPontuacaoEl.classList.add("hidden");
+        palavraEl.textContent = novaPalavra;
+        palavraEl.classList.remove("hidden");
+        pontuacaoEl.textContent = novaPontuacao;
+        pontuacaoEl.classList.remove("hidden");
+        salvarBtn.classList.add("hidden");
+        editarBtn.classList.remove("hidden");
+      } else {
+        console.error('Um ou mais elementos necessários para salvar a edição não foram encontrados.');
+      }
+    }
+
+
+    function removerPalavraChavePerfil(index, perfilNome, palavraChave) {
+      const confirmar = confirm(
+        `Tem certeza que deseja remover '${palavraChave}'?`
+      );
+      if (!confirmar) {
+        return;
+      }
+
+      fetch("/remover_palavra_chave", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome_perfil: perfilNome,
+          palavra_chave: palavraChave,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          alert(data.mensagem);
+          recarregarPerfil(perfilNome);
+        })
+        .catch((error) => console.error("Erro:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Event listener para o botão de editar
+      document.getElementById('editarDescricaoIcone').addEventListener('click', function () {
+        // Pega o texto atual da descrição e define como valor do campo de edição
+        const descricaoAtual = document.getElementById('descricaoVaga').textContent;
+        const descricaoInput = document.getElementById('editarDescricaoInput');
+        descricaoInput.value = descricaoAtual; // Definir valor atual antes de exibir
+
+        // Exibe o campo de input e o botão de salvar
+        descricaoInput.style.display = 'block';
+        document.getElementById('salvarDescricaoBtn').style.display = 'block';
+
+        // Oculta a descrição atual e o botão de editar
+        document.getElementById('descricaoVaga').style.display = 'none';
+        this.style.display = 'none';
+      });
+
+      // Event listener para o botão de salvar
+      document.getElementById('salvarDescricaoBtn').addEventListener('click', function () {
+        const descricaoInput = document.getElementById('editarDescricaoInput');
+        const nomePerfilSelect = document.getElementById('selecionarPerfil');
+
+        if (descricaoInput && nomePerfilSelect) {
+          const novaDescricao = descricaoInput.value;
+          const nomePerfil = nomePerfilSelect.value;
+
+          fetch('/atualizar_descricao', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              novaDescricao: novaDescricao,
+              nomePerfil: nomePerfil
+            })
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              alert(data.mensagem);
+              // Atualiza a descrição sem recarregar a página
+              document.getElementById('descricaoVaga').textContent = novaDescricao;
+              document.getElementById('descricaoVaga').style.display = 'block';
+              document.getElementById('editarDescricaoIcone').style.display = 'block';
+
+              // Oculta o campo de input e o botão de salvar
+              descricaoInput.style.display = 'none';
+              this.style.display = 'none';
+            })
+            .catch(error => {
+              console.error('Erro ao atualizar a descrição:', error);
+              alert("Erro ao atualizar a descrição: " + error.message);
+
+              // Reverte para o modo de visualização, mesmo em caso de erro
+              document.getElementById('descricaoVaga').style.display = 'block';
+              document.getElementById('editarDescricaoIcone').style.display = 'block';
+
+              // Oculta o campo de input e o botão de salvar
+              document.getElementById('editarDescricaoInput').style.display = 'none';
+              document.getElementById('salvarDescricaoBtn').style.display = 'none';
+            });
+        }
+      });
+    });
+
+    function mostrarCamposAdicao() {
+      // Esta função alterna a visibilidade da linha para adicionar novas palavras-chave
+      var linhaAdicionar = document.getElementById('linhaAdicionarPalavraChave');
+      linhaAdicionar.classList.toggle('hidden');
+    }
+
+    function adicionarPalavraChavePerfilSelecionado() {
+      const novaPalavraChave = document.getElementById('inputAdicionarPalavraChave').value.trim();
+      const novaPontuacao = document.getElementById('inputAdicionarPontuacao').value.trim();
+      const perfilNome = document.getElementById('selecionarPerfil').value;
+
+      if (!novaPalavraChave || !novaPontuacao) {
+        alert("Por favor, preencha todos os campos antes de adicionar.");
+        return;
+      }
+
+      const dadosParaEnviar = {
+        nova_palavra: novaPalavraChave,
+        pontuacao: parseFloat(novaPontuacao)
+      };
+
+      fetch(`/adicionar_palavra_chave/${encodeURIComponent(perfilNome)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dadosParaEnviar),
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          alert(data.mensagem);
+          document.getElementById('linhaAdicionarPalavraChave').classList.add('hidden');
+          document.getElementById('inputAdicionarPalavraChave').value = '';
+          document.getElementById('inputAdicionarPontuacao').value = '';
+          recarregarPerfil(perfilNome);
+        })
+        .catch(erro => {
+          console.error("Erro ao adicionar palavra-chave:", erro);
+          alert("Erro ao adicionar palavra-chave: " + erro.message);
+        });
+    }
+  </script>
+</body>
+
+</html>

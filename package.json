@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "@fullhuman/postcss-purgecss": "^5.0.0",
+    "autoprefixer": "^10.4.16",
+    "flowbite": "^2.2.0",
+    "postcss-cli": "^11.0.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.6"
+  },
+  "name": "curric_triagem",
+  "description": "WebApp de triagem de currículos",
+  "version": "1.0.0",
+  "main": "postcss.config.js",
+  "scripts": {
+    "tailwind": "npx tailwindcss -i ./static/src/input.css -o ./static/dist/css/output.css --watch"
+  },
+  "author": "",
+  "license": "ISC"
+}

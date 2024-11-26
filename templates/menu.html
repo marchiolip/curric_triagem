@@ -1,0 +1,143 @@
+<!-- Adicionando o navbar com classes do Tailwind CSS e Flowbite -->
+<nav class="bg-white border-gray-200 px-2 sm:px-4 py-2.5 fixed w-full z-50 top-0 shadow-md">
+  <div class="container flex flex-wrap justify-between items-center mx-auto">
+    <a href="{{ url_for('home') }}" class="flex items-center">
+      <img src="/static/logo.png" alt="Logo" class="mr-3 h-6 sm:h-9" />
+    </a>
+
+    <div class="hidden justify-between items-center w-full md:flex md:w-auto md:order-1" id="menuSuperior">
+      <ul class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">
+        <li>
+          <a href="{{ url_for('dashboard') }}"
+            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white"
+            style="background-color: #9c0f4c; cursor:pointer;">Dashboard de Contratações</a>
+
+        </li>
+        <li>
+          <a href="{{ url_for('home') }}"
+            class="block py-2 pr-4 pl-3 text-black rounded md:bg-transparent md:p-0 dark:text-white {{ 'bg-black bg-opacity-10' if request.path == url_for('home') else '' }}">Página
+            Inicial</a>
+        </li>
+        <li>
+          <a href="{{ url_for('analisar') }}"
+            class="block py-2 pr-4 pl-3 text-black rounded md:bg-transparent md:p-0 dark:text-white {{ 'bg-black bg-opacity-10' if request.path == url_for('analisar') else '' }}">Analisador</a>
+        </li>
+        <li>
+          <a href="{{ url_for('criar_perfil') }}"
+            class="block py-2 pr-4 pl-3 text-black rounded md:bg-transparent md:p-0 dark:text-white {{ 'bg-black bg-opacity-10' if request.path == url_for('criar_perfil') else '' }}">Criar
+            Perfil</a>
+        </li>
+        <li>
+          <a href="{{ url_for('agenda') }}"
+            class="block py-2 pr-4 pl-3 text-black rounded md:bg-transparent md:p-0 dark:text-white {{ 'bg-black bg-opacity-10' if request.path == url_for('agenda') else '' }}">Agenda
+            de Entrevistas</a>
+        </li>
+        <li>
+          <a href="{{ url_for('acompanhamento') }}"
+            class="block py-2 pr-4 pl-3 text-black rounded md:bg-transparent md:p-0 dark:text-white {{ 'bg-black bg-opacity-10' if request.path == url_for('acompanhamento') else '' }}">Acompanhamento
+            de Entrevistas</a>
+        </li>
+        <li>
+          <a id="downloadButton"
+            class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-800 hover:bg-purple-600"
+            style="cursor:pointer;">Baixar Currículos</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Adicione o Pop-up para listar os currículos baixados -->
+<div id="popup" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 justify-center items-center">
+  <div class="bg-white p-4 rounded-lg shadow-lg">
+    <h2 class="text-lg">Currículos Baixados:</h2>
+    <ul id="curriculosList" class="list-disc pl-5 mb-4">
+      <!-- Os itens serão inseridos aqui pelo JavaScript -->
+    </ul>
+    <button onclick="closePopup()" class="px-4 py-2 bg-purple-800 text-white rounded hover:bg-purple-600">
+      OK
+    </button>
+  </div>
+</div>
+
+<!-- Adicione este script antes do fechamento da tag </body> -->
+<script>
+  // Event listener para o botão de download de currículos
+  document.addEventListener('DOMContentLoaded', function () {
+    var downloadButton = document.getElementById('downloadButton');
+
+    downloadButton.addEventListener('click', function (e) {
+      e.preventDefault();
+      this.classList.add('shine-effect'); // Adiciona o efeito de brilho
+
+      fetch('/executar_gmail')
+        .then(response => response.json())
+        .then(data => {
+          this.classList.remove('shine-effect', 'active'); // Remove o efeito de brilho assim que a resposta é recebida
+          if (data.success) {
+            const curriculosList = document.getElementById('curriculosList');
+            curriculosList.innerHTML = ''; // Limpa a lista atual
+            data.curriculos.forEach(curriculo => {
+              const listItem = document.createElement('li');
+              listItem.textContent = curriculo;
+              curriculosList.appendChild(listItem);
+            });
+            document.getElementById('popup').classList.remove('hidden'); // Mostra o pop-up
+          } else {
+            alert(data.mensagem); // Se houver erro, exibe a mensagem
+          }
+        })
+        .catch(error => {
+          console.error('Erro:', error);
+          this.classList.remove('shine-effect', 'active'); // Certifique-se de remover o efeito de brilho também em caso de erro
+        });
+    });
+
+    // Função para fechar o pop-up e recarregar a página
+    window.closePopup = function () {
+      document.getElementById('popup').classList.add('hidden');
+      window.location.reload();
+    };
+  });
+</script>
+
+<style>
+  @keyframes shine {
+    0% {
+      background-position: -200px;
+    }
+
+    100% {
+      background-position: 200px;
+    }
+  }
+
+  .shine-effect {
+    position: relative;
+    overflow: hidden;
+    /* Impede que o pseudo-elemento ultrapasse os limites do botão */
+  }
+
+  .shine-effect::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+    animation: shine 2s infinite linear;
+  }
+
+  .shine-effect.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+    animation: shine 2s linear infinite;
+  }
+</style>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset=" UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard de contratações</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='dist/css/output.css')}}" />
+    <link href="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.min.css" rel="stylesheet" />
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+        /* Adicione suas customizações de CSS aqui */
+    </style>
+    <script src="{{ url_for('static', filename='dist/index.global.min.js') }}"></script>
+</head>
+
+<body class="bg-white text-black antialiased">
+    {% include 'menu.html' %}
+
+    <h1 class="titulo text-xl font-bold text-center">Selecione o período e a loja:</h1>
+    <div class="selecao-wrapper bg-white shadow-lg rounded-lg p-6 max-w-xl mx-auto">
+        <!-- Área de seleção de período -->
+        <div id="periodo-selecao" class="my-4 justify-center gap-4">
+            <input type="date" id="inicio-periodo" name="inicio-periodo" class="rounded-lg">
+            <input type="date" id="fim-periodo" name="fim-periodo" class="rounded-lg">
+            <button class="btn-analisar px-2 py-1  text-white rounded-lg" onclick="buscarDados()">Analisar</button>
+        </div>
+        <div id="loja-selecao" class="my-4">
+            <select id="selecao-loja" name="selecao-loja" class="rounded-lg">
+                <option value="todas">Todas as Lojas</option>
+                <option value="Store">Store</option>
+                <option value="Kobrasol">Kobrasol</option>
+                <option value="Boutique">Boutique</option>
+                <option value="Esteves">Esteves</option>
+                <option value="Tenente">Tenente</option>
+                <option value="Outlet">Outlet</option>
+                <option value="Logística">Logística</option>
+                <option value="Financeiro">Financeiro</option>
+            </select>
+        </div>
+    </div>
+    <div class="container-dashboard mx-auto my-8">
+
+
+        <div class="dashboard-container">
+            <!-- Métricas -->
+            <div class="metricas-container hidden-table" id="metricas">
+
+                <h2 class="titulo-metricas text-lg font-bold text-center mb-4">Análise de métricas</h2>
+                <div class="metrica">Rotatividade: <span id="rotatividade"></span></div>
+                <div class="metrica">Turnover Ativos: <span id="turnover-ativos"></span></div>
+                <div class="metrica">Turnover Passivos: <span id="turnover-passivos"></span></div>
+                <div class="metrica">Turnover Geral: <span id="turnover-geral"></span></div>
+                <div class="metrica">Média de Permanência <span id="media-permanencia"></span></div>
+            </div>
+
+            <!-- Dados gerais da loja -->
+            <div class="dados-gerais-container hidden-table" id="dados-gerais">
+
+                <h2 class="titulo-dados-gerais text-lg font-bold text-center mb-4">Dados gerais da loja</h2>
+                <div class="dados-gerais">Admissões: <span id="admissoes"></span></div>
+                <div class="dados-gerais">Contratações: <span id="contratados"></span></div>
+                <div class="dados-gerais">Dispensa (Empresa): <span id="dispensa-empresa"></span></div>
+                <div class="dados-gerais">Dispensa (Pessoal): <span id="dispensa-pessoal"></span></div>
+                <div class="dados-gerais">Em experiência: <span id="em-experiencia"></span></div>
+                <div class="dados-gerais">Quadro Geral: <span id="quadro-geral"></span></div>
+                <div class="dados-gerais">% em experiência: <span id="percentual-experiencia"></span></div>
+            </div>
+
+            <div class="origem-container hidden-table" id="origem">
+
+                <h2 class="titulo-origem text-lg font-bold text-center mb-4">Dados de Origem</h2>
+                <div class="dados-origem">Indeed: <span id="indeed"></span></div>
+                <div class="dados-origem">Indicação: <span id="indicação"></span></div>
+                <div class="dados-origem">Vagas Floripa: <span id="vagas-floripa"></span></div>
+                <div class="dados-origem">Instagram: <span id="instagram"></span></div>
+                <div class="dados-origem">Entregue em loja: <span id="entregue"></span></div>
+                <div class="dados-origem">Abordagem: <span id="abordagem"></span></div>
+            </div>
+
+            <div class="rotatividade-container hidden-table" id="rotatividade-lojas">
+
+                <h2 class="titulo-rotatividade text-lg font-bold text-center mb-4">Rotatividade Lojas</h2>
+                <div class="rotatividade">Store: <span id="store"></span></div>
+                <div class="rotatividade">Kobrasol: <span id="kobrasol"></span></div>
+                <div class="rotatividade">Boutique: <span id="boutique"></span></div>
+                <div class="rotatividade">Esteves: <span id="esteves"></span></div>
+                <div class="rotatividade">Tenente: <span id="tenente"></span></div>
+                <div class="rotatividade">Outlet: <span id="outlet"></span></div>
+                <div class="rotatividade">Logística: <span id="logística"></span></div>
+                <div class="rotatividade">Financeiro: <span id="financeiro"></span></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+
+
+        async function buscarDados() {
+            const inicio = document.getElementById('inicio-periodo').value;
+            const fim = document.getElementById('fim-periodo').value;
+
+            // Formata as datas para o formato esperado pelo backend
+            const inicioFormatado = formatoData(inicio);
+            const fimFormatado = formatoData(fim);
+
+            try {
+                // Chamada para métricas específicas da loja
+                const url = `/calcular-metricas?inicio=${inicioFormatado}&fim=${fimFormatado}&loja=${document.getElementById('selecao-loja').value}`;
+                const response = await fetch(url);
+                const metricas = await response.json();
+
+                // Chamada para rotatividade de todas as lojas
+                const urlRotatividade = `/calcular-rotatividade-todas-lojas?inicio=${inicioFormatado}&fim=${fimFormatado}`;
+                const responseRotatividade = await fetch(urlRotatividade);
+                const rotatividadeLojas = await responseRotatividade.json();
+
+                if (response.ok && responseRotatividade.ok) {
+                    metricas.rotatividadeLojas = rotatividadeLojas; // Adiciona os dados de rotatividade ao objeto de métricas
+                    atualizarInterface(metricas);
+                    atualizarEstiloLoja(document.getElementById('selecao-loja').value);
+                    document.getElementById('metricas').classList.remove('hidden-table');
+                    document.getElementById('dados-gerais').classList.remove('hidden-table');
+                    document.getElementById('origem').classList.remove('hidden-table');
+                    document.getElementById('rotatividade-lojas').classList.remove('hidden-table');
+                } else {
+                    throw new Error(metricas.error || rotatividadeLojas.error || 'Erro desconhecido ao buscar métricas');
+                }
+            } catch (error) {
+                console.error('Falha na requisição: ', error);
+            }
+        }
+
+
+        function atualizarInterface(metricas) {
+            document.getElementById('rotatividade').textContent = Math.round(metricas.rotatividade) + '%';
+            document.getElementById('turnover-ativos').textContent = Math.round(metricas.turnover_ativos) + '%';
+            document.getElementById('turnover-passivos').textContent = Math.round(metricas.turnover_passivos) + '%';
+            document.getElementById('turnover-geral').textContent = Math.round(metricas.turnover_geral) + '%';
+            document.getElementById('media-permanencia').textContent = metricas.media_permanencia.toFixed(1) + ' dias';
+
+            document.getElementById('admissoes').textContent = metricas.admissoes;
+            document.getElementById('contratados').textContent = metricas.contratados;
+            document.getElementById('dispensa-empresa').textContent = metricas.dispensa_empresa;
+            document.getElementById('dispensa-pessoal').textContent = metricas.dispensa_pessoal;
+            document.getElementById('em-experiencia').textContent = metricas.em_experiencia;
+            document.getElementById('quadro-geral').textContent = metricas.quadro_geral;
+            document.getElementById('percentual-experiencia').textContent = metricas.percentual_experiencia.toFixed(1) + '%';
+
+            // Atualiza dados de origem
+            document.getElementById('indeed').textContent = metricas.origens['Indeed'] || 0;
+            document.getElementById('indicação').textContent = metricas.origens['Indicação'] || 0;
+            document.getElementById('vagas-floripa').textContent = metricas.origens['Vagas Floripa'] || 0;
+            document.getElementById('instagram').textContent = metricas.origens['Instagram'] || 0;
+            document.getElementById('entregue').textContent = metricas.origens['Entregue na loja'] || 0;
+            document.getElementById('abordagem').textContent = metricas.origens['Abordagem'] || 0;
+
+            // Atualização dos dados de rotatividade das lojas
+            if (metricas.rotatividadeLojas) {
+                console.log("Rotatividade das lojas: ", metricas.rotatividadeLojas);
+                Object.entries(metricas.rotatividadeLojas).forEach(([store, value]) => {
+                    const storeElement = document.getElementById(store.toLowerCase());
+                    if (storeElement) {
+                        storeElement.textContent = Math.round(value) + '%';
+                    } else {
+                        console.log("Elemento não encontrado para a loja: ", store);
+                    }
+                });
+            } else {
+                console.log("Dados de rotatividade das lojas não disponíveis.");
+            }
+        }
+
+
+
+
+        function formatoData(dataISO) {
+            const [ano, mes, dia] = dataISO.split('-'); // Assume que o formato da data é AAAA-MM-DD
+            return `${dia}/${mes}/${ano}`; // Converte para DD/MM/YYYY
+        }
+
+
+
+        function calcularTempoPermanencia(dataInicio, dataFim) {
+            const diferencaTempo = dataFim.getTime() - dataInicio.getTime();
+            return Math.ceil(diferencaTempo / (1000 * 3600 * 24)); // Retorna a diferença em dias
+        }
+
+
+        function atualizarEstiloLoja(lojaSelecionada) {
+            const metricasContainer = document.getElementById('metricas');
+            const dadosGeraisContainer = document.getElementById('dados-gerais');
+            const origemContainer = document.getElementById('origem');
+            const rotatividadeContainer = document.getElementById('rotatividade-lojas');
+
+            // Limpar todas as classes relacionadas às lojas
+            metricasContainer.className = 'metricas-container hidden-table';
+            dadosGeraisContainer.className = 'dados-gerais-container hidden-table';
+            origemContainer.className = 'origem-container hidden-table';
+            rotatividadeContainer.className = 'rotatividade-container hidden-table';
+
+            // Definir classes de estilo com base na loja selecionada
+            switch (lojaSelecionada) {
+                case 'Store':
+                    metricasContainer.classList.add('store');
+                    dadosGeraisContainer.classList.add('store');
+                    origemContainer.classList.add('store');
+                    rotatividadeContainer.classList.add('store');
+                    break;
+                case 'Kobrasol':
+                    metricasContainer.classList.add('kobrasol');
+                    dadosGeraisContainer.classList.add('kobrasol');
+                    origemContainer.classList.add('kobrasol');
+                    rotatividadeContainer.classList.add('kobrasol');
+                    break;
+                case 'Boutique':
+                    metricasContainer.classList.add('boutique');
+                    dadosGeraisContainer.classList.add('boutique');
+                    origemContainer.classList.add('boutique');
+                    rotatividadeContainer.classList.add('boutique');
+                    break;
+                case 'Esteves':
+                    metricasContainer.classList.add('esteves');
+                    dadosGeraisContainer.classList.add('esteves');
+                    origemContainer.classList.add('esteves');
+                    rotatividadeContainer.classList.add('esteves');
+                    break;
+                case 'Tenente':
+                    metricasContainer.classList.add('tenente');
+                    dadosGeraisContainer.classList.add('tenente');
+                    origemContainer.classList.add('tenente');
+                    rotatividadeContainer.classList.add('tenente');
+                    break;
+                case 'Outlet':
+                    metricasContainer.classList.add('outlet');
+                    dadosGeraisContainer.classList.add('outlet');
+                    origemContainer.classList.add('outlet');
+                    rotatividadeContainer.classList.add('outlet');
+                    break;
+                case 'Logística':
+                    metricasContainer.classList.add('logística');
+                    dadosGeraisContainer.classList.add('logística');
+                    origemContainer.classList.add('logística');
+                    rotatividadeContainer.classList.add('logística');
+                    break;
+                case 'Financeiro':
+                    metricasContainer.classList.add('financeiro');
+                    dadosGeraisContainer.classList.add('financeiro');
+                    origemContainer.classList.add('financeiro');
+                    rotatividadeContainer.classList.add('financeiro');
+                    break;
+                default:
+                    metricasContainer.classList.add('todas-lojas');
+                    dadosGeraisContainer.classList.add('todas-lojas');
+                    origemContainer.classList.add('todas-lojas');
+                    rotatividadeContainer.classList.add('todas-lojas');
+                    break;
+            }
+        }
+
+
+        function atualizarDadosOrigem(origens) {
+            const origensDesejadas = ['Indeed', 'Indicação', 'Vagas Floripa', 'Instagram', 'Entregue em loja', 'Abordagem']; // Lista todas as possíveis origens
+            const tbody = document.getElementById('dados-origem');
+            tbody.innerHTML = ''; // Limpa a tabela existente
+
+            origensDesejadas.forEach(origem => {
+                const quantidade = origens[origem] || 0; // Usa 0 se a origem não estiver presente
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${origem}</td><td>${quantidade}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+
+
+    </script>
+
+</body>
+
+<style>
+    body {
+        padding-top: 70px;
+        /* Ajuste este valor conforme a altura do seu menu */
+    }
+
+    #periodo-selecao {
+        display: flex;
+        justify-content: center;
+        z-index: 10;
+        /* Garante que fique sobre outros elementos */
+        gap: 0.5rem;
+        margin-top: 0;
+    }
+
+    .dashboard-container {
+        display: flex;
+        justify-content: space-around;
+        /* Centraliza e adiciona espaço entre os itens */
+        margin: 0 auto;
+        max-width: 1200px;
+        /* Ou ajuste conforme necessário para sua página */
+        padding: 20px;
+    }
+
+
+
+    .metricas-container,
+    .dados-gerais-container,
+    .origem-container,
+    .rotatividade-container {
+        flex: 1;
+        /* Faz com que ambos os containers tenham a mesma largura */
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #fff;
+        /* Cor de fundo para melhorar a visibilidade */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 0 30px;
+        /* Adiciona um pequeno espaço entre os containers */
+    }
+
+
+    .dados-gerais,
+    .metrica,
+    .dados-origem,
+    .rotatividade {
+        background-color: #ffffff;
+        color: #4e4e4f;
+        font-weight: bold;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        /* Adiciona um espaço entre os itens dentro dos containers */
+    }
+
+
+
+    .selecao-container {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding-left: 20px;
+        /* Ajuste conforme necessário */
+        gap: 10px;
+    }
+
+    #inicio-periodo,
+    #fim-periodo {
+        max-width: 150px;
+        /* Largura máxima para os inputs de data */
+    }
+
+    .btn-analisar:hover,
+    .btn-dashboard:hover {
+        background-color: #c70f5f;
+        /* Cor de fundo roxo mais escuro para hover */
+    }
+
+    .btn-analisar {
+        background-color: #9c0f4c;
+    }
+
+    .hidden-table {
+        display: none;
+    }
+
+    #loja-selecao {
+        display: flex;
+        justify-content: center;
+        z-index: 10;
+        /* Garante que fique sobre outros elementos */
+        margin-right: 4.5%;
+    }
+
+    .titulo {
+        color: #9c0f4c;
+    }
+
+    .selecao-wrapper {
+        max-width: 760px;
+        /* Ou qualquer outra largura que funcione melhor para você */
+        margin: 0 auto;
+        /* Isso centraliza o contêiner */
+    }
+
+    .titulo-metricas,
+    .titulo-dados-gerais,
+    .titulo-origem,
+    .titulo-rotatividade {
+        font-weight: bold;
+        color: #4e4e4f;
+        background-color: white;
+        padding: 10px;
+        /* Ajuste do padding */
+        border-radius: 8px;
+        margin: 0 -30% 20px -20%;
+        /* Ajuste de margem para alinhar o bloco estendido */
+        font-weight: bold;
+        /* Torna o texto do título em negrito */
+        text-align: center;
+        /* Centraliza o texto */
+        font-size: 20px;
+        /* Aumenta o tamanho da fonte para destaque */
+        width: 140%;
+        /* Faz com que o título ocupe toda a largura do container */
+        
+    }
+
+    .container-dashboard {
+
+        /* Ou qualquer outra largura que funcione melhor para você */
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+
+
+
+
+
+
+
+
+    /*Estilo para cada loja*/
+    .store {
+        background-color: #0b5394;
+        box-shadow: 5px 5px 10px rgb(11, 84, 148);
+    }
+
+    .kobrasol {
+        background-color: #c8080b;
+        box-shadow: 5px 5px 10px rgb(204, 0, 0);
+    }
+
+    .boutique {
+        background-color: #26a69a;
+        box-shadow: 5px 5px 10px rgb(38, 166, 154);
+    }
+
+    .esteves {
+        background-color: #e06c0c;
+        box-shadow: 5px 5px 10px rgb(224, 108, 12);
+    }
+
+    .tenente {
+        background-color: #623ebd;
+        box-shadow: 5px 5px 10px rgb(102, 83, 159);
+    }
+
+    .outlet {
+        background-color: #999999;
+        box-shadow: 5px 5px 10px rgb(153, 153, 153);
+    }
+
+    .logística {
+        background-color: #0c343d;
+        box-shadow: 5px 5px 10px rgb(12, 52, 61);
+    }
+
+    .financeiro {
+        background-color: #9d0183e7;
+        box-shadow: 5px 5px 10px rgb(192, 10, 162);
+    }
+
+    .todas-lojas {
+        background-color: #9c0c4c;
+        box-shadow: 5px 5px 10px rgb(156, 12, 76);
+    }
+</style>
+
+</html>

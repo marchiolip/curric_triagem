@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset=" UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agenda de Entrevistas</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static',filename='dist/css/output.css')}}"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/flowbite/dist/flowbite.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+    </style>
+    <script src="{{ url_for('static', filename='dist/index.global.min.js') }}"></script>
+  </head>
+
+  <body class="bg-white text-black antialiased">
+    {% include 'menu.html' %}
+
+    <div class="container mx-auto p-6">
+      <h1 class="text-2xl font-bold text-center text-purple-700 mb-4 underline">
+        Agenda de Entrevistas
+      </h1>
+
+      <!-- Contêiner Flex -->
+      <div class="flex flex-wrap -mx-3">
+        <!-- Calendário -->
+        <div
+          id="calendario"
+          class="bg-white p-4 rounded-lg shadow-md flex-1 mx-3"
+        >
+          <!-- O calendário será gerado aqui -->
+        </div>
+
+        <!-- Lista de Entrevistas -->
+        <div
+          id="listaEntrevistas"
+          class="bg-white p-4 rounded-lg shadow-md flex-1 mx-3"
+        >
+          <h2
+            class="text-xl font-semibold mb-2 text-center text-purple-700 underline"
+          >
+            Entrevistas Agendadas do mês
+          </h2>
+          <div class="overflow-x-auto mt-6">
+            <table class="w-full table-auto">
+              <thead>
+                <tr class="bg-purple-700 text-white">
+                  <th id="sortCandidato" class="px-4 py-2 cursor-pointer">
+                    Candidato
+                  </th>
+                  <th id="sortData" class="px-4 py-2 cursor-pointer">Data</th>
+                  <th id="sortHorario" class="px-4 py-2 cursor-pointer">
+                    Horário
+                  </th>
+                  <th id="sortPerfil" class="px-4 py-2 cursor-pointer">
+                    Perfil
+                  </th>
+                  <th class="px-4 py-2">Currículo</th>
+                </tr>
+              </thead>
+              <tbody id="corpoTabelaEntrevistas" class="bg-gray-100">
+                <!-- As entrevistas agendadas serão listadas aqui -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Formulário para cancelar entrevistas -->
+          <div class="mt-4 p-4 border-t border-gray-200">
+            <h3 class="text-lg font-semibold mb-2">Cancelar Entrevista</h3>
+            <form class="space-y-4">
+              <div>
+                <label
+                  for="cancelarCandidato"
+                  class="block mb-2 text-sm font-medium"
+                  >Nome do Candidato:</label
+                >
+                <select
+                  id="cancelarCandidato"
+                  class="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 rounded-lg shadow-sm w-full"
+                >
+                  <!-- Opções de candidatos a serem preenchidas dinamicamente -->
+                </select>
+              </div>
+              <button
+                type="button"
+                onclick="cancelarEntrevista()"
+                class="px-5 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600"
+              >
+                Cancelar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="agendarEntrevista"
+        class="bg-white p-4 rounded-lg shadow-md mt-6"
+      >
+        <h2
+          class="text-xl font-semibold mb-2 text-center text-purple-700 underline"
+        >
+          Agendar Nova Entrevista
+        </h2>
+        <form class="space-y-4">
+          <div>
+            <label for="nomeCandidato" class="block mb-2 text-sm font-medium"
+              >Nome do Candidato:</label
+            >
+            <input
+              type="text"
+              id="nomeCandidato"
+              class="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 rounded-lg shadow-sm w-full"
+              required
+            />
+          </div>
+          <div>
+            <label for="dataEntrevista" class="block mb-2 text-sm font-medium"
+              >Data da Entrevista:</label
+            >
+            <input
+              type="datetime-local"
+              id="dataEntrevista"
+              class="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 rounded-lg shadow-sm w-full"
+              required
+            />
+          </div>
+          <div>
+            <label
+              for="perfilSelecionado"
+              class="block mb-2 text-sm font-medium"
+              >Perfil Selecionado:</label
+            >
+            <select
+              id="perfilSelecionado"
+              class="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 rounded-lg shadow-sm w-full"
+              required
+              onchange="filtrarCurriculosPorPerfil()"
+            ></select>
+          </div>
+          <div>
+            <label for="nomeCurriculo" class="block mb-2 text-sm font-medium"
+              >Nome do Currículo:</label
+            >
+            <input
+              type="text"
+              id="nomeCurriculo"
+              oninput="filtrarCurriculos(this.value)"
+              class="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 rounded-lg shadow-sm w-full"
+              placeholder="Digite para buscar currículos"
+              autocomplete="off"
+            />
+            <div id="listaCurriculos" class="lista-curriculos"></div>
+          </div>
+          <button
+            type="button"
+            onclick="agendarEntrevista()"
+            class="px-5 py-3 bg-purple-500 text-white font-semibold rounded-lg shadow-md hover:bg-purple-600"
+          >
+            Agendar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function agendarEntrevista() {
+        var nomeCandidato = document.getElementById("nomeCandidato").value;
+        var dataEntrevista = document.getElementById("dataEntrevista").value;
+
+        if (!nomeCandidato || !dataEntrevista) {
+          alert("Por favor, preencha todos os campos.");
+          return;
+        }
+
+        // Verifica o formato da data
+        console.log("Formato da data da entrevista:", dataEntrevista);
+
+        var nomeCurriculo = document.getElementById("nomeCurriculo").value;
+        var perfilSelecionado =
+          document.getElementById("perfilSelecionado").value;
+
+        var dadosEntrevista = {
+          title: nomeCandidato,
+          start: dataEntrevista,
+          nomeCurriculo: nomeCurriculo, // Adicionando o nome do currículo
+          perfilSelecionado: perfilSelecionado,
+        };
+
+        fetch("/salvar_entrevista", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dadosEntrevista),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Erro na resposta do servidor");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              alert("Entrevista agendada com sucesso!");
+            } else {
+              alert("Erro ao agendar a entrevista.");
+            }
+            // Recarregar a página após a resposta
+            window.location.reload();
+          })
+          .catch((error) => {
+            console.error("Erro ao fazer a requisição:", error);
+            alert("Erro ao conectar com o servidor.");
+          });
+      }
+
+      function carregarCurriculos() {
+        fetch("/resultados")
+          .then((response) => response.json())
+          .then((data) => {
+            const select = document.getElementById("nomeCurriculo");
+            data.forEach((curriculo) => {
+              const option = document.createElement("option");
+              option.value = curriculo.nome_curriculo;
+              option.textContent =
+                curriculo.nome_curriculo + " - " + curriculo.pontuacao;
+              select.appendChild(option);
+            });
+          })
+          .catch((error) =>
+            console.error("Erro ao carregar currículos:", error)
+          );
+      }
+
+      // Chamar essa função quando a página for carregada
+      document.addEventListener("DOMContentLoaded", carregarCurriculos);
+
+      document.addEventListener("DOMContentLoaded", function () {
+        carregarNomesEntrevistas();
+        var calendarEl = document.getElementById("calendario");
+        var listaEntrevistasEl = document
+          .getElementById("listaEntrevistas")
+          .querySelector("ul");
+        var calendar;
+        var mesAnoAtual; // Variável para armazenar o mês e o ano atual
+
+        // Função para ordenar por coluna com toggle entre ascendente e descendente
+        function ordenarTabelaPorColuna(colunaIndex, tipoDeDados) {
+          var tabela,
+            linhas,
+            chaveA,
+            chaveB,
+            deveTrocar,
+            trocando,
+            direcao,
+            contador = 0;
+          tabela = document
+            .getElementById("listaEntrevistas")
+            .querySelector("table");
+          trocando = true;
+          // Definir direção como ascendente
+          direcao = "asc";
+
+          while (trocando) {
+            trocando = false;
+            linhas = tabela.getElementsByTagName("TR");
+            // Laço por todas as linhas da tabela, exceto o cabeçalho, para verificar se deve trocar de lugar
+            for (var i = 1; i < linhas.length - 1; i++) {
+              deveTrocar = false;
+              // Pegar os elementos a serem comparados, um da linha atual e outro da próxima
+              chaveA = linhas[i].getElementsByTagName("TD")[colunaIndex];
+              chaveB = linhas[i + 1].getElementsByTagName("TD")[colunaIndex];
+              // Checar se as duas linhas devem trocar de lugar, baseado na direção, ascendente ou descendente
+              if (tipoDeDados === "string") {
+                if (
+                  (direcao == "asc" &&
+                    chaveA.innerHTML.toLowerCase() >
+                      chaveB.innerHTML.toLowerCase()) ||
+                  (direcao == "desc" &&
+                    chaveA.innerHTML.toLowerCase() <
+                      chaveB.innerHTML.toLowerCase())
+                ) {
+                  deveTrocar = true;
+                  break;
+                }
+              } else if (tipoDeDados === "date") {
+                // Adicione outras condições para tipos diferentes de dados
+                // Converter a string de data em um objeto Date para comparação
+                var dataA = Date.parse(chaveA.innerHTML);
+                var dataB = Date.parse(chaveB.innerHTML);
+                if (
+                  (direcao == "asc" && dataA > dataB) ||
+                  (direcao == "desc" && dataA < dataB)
+                ) {
+                  deveTrocar = true;
+                  break;
+                }
+              }
+            }
+            if (deveTrocar) {
+              // Se um troca deve acontecer, faça-a e marque que uma troca foi feita
+              linhas[i].parentNode.insertBefore(linhas[i + 1], linhas[i]);
+              trocando = true;
+              contador++;
+            } else {
+              // Se nenhuma troca foi feita E a direção é "asc",
+              // mude a direção para "desc" e rode novamente o laço
+              if (contador == 0 && direcao == "asc") {
+                direcao = "desc";
+                trocando = true;
+              }
+            }
+          }
+        }
+
+        // Event listeners para cada cabeçalho da coluna
+        document
+          .getElementById("sortCandidato")
+          .addEventListener("click", function () {
+            ordenarTabelaPorColuna(0, "string");
+          });
+        document
+          .getElementById("sortData")
+          .addEventListener("click", function () {
+            ordenarTabelaPorColuna(1, "date");
+          });
+        document
+          .getElementById("sortHorario")
+          .addEventListener("click", function () {
+            ordenarTabelaPorColuna(2, "string");
+          });
+        document
+          .getElementById("sortPerfil")
+          .addEventListener("click", function () {
+            ordenarTabelaPorColuna(3, "string");
+          });
+
+        // Atualizar a tabela com os dados ordenados
+        atualizarTabelaEntrevistas();
+
+        function atualizarTabelaEntrevistas() {
+          const listaEntrevistasEl = document.getElementById(
+            "corpoTabelaEntrevistas"
+          );
+          listaEntrevistasEl.innerHTML = ""; // Limpar tabela atual
+
+          dadosEntrevistas.forEach((entrevista, index) => {
+            // Crie e adicione as linhas da tabela aqui, como você já faz na função carregarEntrevistas
+            // ...
+          });
+        }
+
+        function carregarEntrevistas(mesAno) {
+          fetch(`/entrevistas_mes/${mesAno}?pagina=agenda`)
+            .then((response) => response.json())
+            .then((entrevistas) => {
+              var listaEntrevistasEl = document.getElementById(
+                "corpoTabelaEntrevistas"
+              );
+              listaEntrevistasEl.innerHTML = "";
+              calendar.removeAllEvents();
+
+              dadosEntrevistas = entrevistas; // Armazena os dados
+              atualizarTabelaEntrevistas(); // Atualiza a tabela pela primeira vez
+
+              entrevistas.forEach((entrevista, index) => {
+                var [data, horario] = entrevista.data.split("T");
+
+                var linha = document.createElement("tr");
+                linha.classList.add(
+                  index % 2 === 0 ? "bg-white" : "bg-gray-200"
+                );
+                linha.classList.add("hover:bg-purple-300");
+
+                var celulaCandidato = criaCelula(entrevista.candidato);
+
+                var celulaData = criaCelula(data);
+
+                var celulaHorario = criaCelula(horario);
+
+                var celulaPerfil = document.createElement("td");
+                celulaPerfil.classList.add(
+                  "border",
+                  "px-4",
+                  "py-2",
+                  "text-center"
+                );
+                celulaPerfil.textContent = entrevista.perfil; // Ajuste para corresponder ao campo de perfil do seu objeto de entrevista
+
+                var celulaCurriculo = criaCelulaCurriculo(
+                  entrevista.nomeCurriculo
+                );
+
+                linha.appendChild(celulaCandidato);
+                linha.appendChild(celulaData);
+                linha.appendChild(celulaHorario);
+                linha.appendChild(celulaPerfil);
+                linha.appendChild(celulaCurriculo);
+
+                listaEntrevistasEl.appendChild(linha);
+
+                calendar.addEvent({
+                  title: entrevista.candidato,
+                  start: entrevista.data,
+                });
+              });
+            })
+            .catch((error) =>
+              console.error("Erro ao carregar entrevistas:", error)
+            );
+        }
+
+        function criaCelula(conteudo) {
+          var celula = document.createElement("td");
+          celula.classList.add("border", "px-4", "py-2", "text-center");
+          celula.textContent = conteudo;
+          return celula;
+        }
+
+        function criaCelulaCurriculo(nomeCurriculo) {
+          var celula = document.createElement("td");
+          celula.classList.add("border", "px-4", "py-2", "text-center");
+
+          var link = document.createElement("a");
+          link.setAttribute("href", `/curriculos/${nomeCurriculo}`);
+          link.setAttribute("target", "_blank");
+          link.textContent = nomeCurriculo;
+
+          celula.appendChild(link);
+          return celula;
+        }
+
+        function inicializarCalendario() {
+          calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: "pt-br",
+            initialView: "dayGridMonth",
+            selectable: true,
+            dayCellContent: function (e) {
+              var dataAtual = new Date();
+              var dataCelula = e.date;
+
+              // Verifica se o dia da célula pertence ao mês atual
+              if (dataCelula.getMonth() === dataAtual.getMonth()) {
+                e.dayNumberText = `<span class="bg-purple-200 p-1 rounded">${e.dayNumberText}</span>`;
+              } else {
+                e.dayNumberText = `<span class="text-gray-400">${e.dayNumberText}</span>`;
+              }
+            },
+            datesSet: function (dateInfo) {
+              if (!mesAnoAtual || dateInfo.start !== mesAnoAtual) {
+                mesAnoAtual = dateInfo.start;
+                var mesAtual = dateInfo.start.getMonth(); // Mês atual como um número de 0 a 11
+                var anoAtual = dateInfo.start.getFullYear(); // Ano atual
+
+                // Verifica se a data inicial está no final do mês anterior e corrige o mês
+                if (dateInfo.start.getDate() > 1) {
+                  mesAtual++;
+                }
+
+                // Ajusta o ano e o mês se o mês atual ultrapassar dezembro
+                if (mesAtual > 11) {
+                  mesAtual = 0; // Janeiro é 0 em JavaScript, setei assim
+                  anoAtual++; // Incrementa o ano porque estava puxando um errado (virava 13 para JAN/24)
+                }
+
+                // Formata o mês para o formato 'YYYY-MM'
+                var mesAno = anoAtual + "-" + ("0" + (mesAtual + 1)).slice(-2);
+
+                console.log("Mudança de mês para (corrigido):", mesAno);
+                carregarEntrevistas(mesAno);
+              }
+            },
+            eventDidMount: function (info) {
+              // Adiciona um atributo 'title' para tooltip nativo do navegador
+              info.el.setAttribute("title", info.event.title);
+            },
+          });
+
+          calendar.render();
+        }
+        inicializarCalendario();
+        carregarEntrevistas(new Date().toISOString().substring(0, 7));
+      });
+
+      function carregarPerfisParaAgendamento() {
+        fetch("/PERFIS")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((perfis) => {
+            const selectPerfil = document.getElementById("perfilSelecionado");
+            selectPerfil.innerHTML =
+              '<option value="">Selecione um Perfil</option>'; // Opção padrão
+            perfis.forEach((perfil) => {
+              const option = document.createElement("option");
+              option.value = perfil; // Aqui assumimos que perfil é uma string com o nome do perfil
+              option.textContent = perfil;
+              selectPerfil.appendChild(option);
+            });
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar perfis:", error);
+          });
+      }
+
+      // Adicionar o carregamento de perfis ao carregar o documento
+      document.addEventListener(
+        "DOMContentLoaded",
+        carregarPerfisParaAgendamento
+      );
+
+      // Variável para armazenar os dados das entrevistas
+      let dadosEntrevistas = [];
+      // Esta função deve estar acessível globalmente, fora de qualquer outra função
+      let ordemAtual = "asc"; // Estado inicial da ordem de classificação
+
+      // Adicione esta função no seu script
+      function filtrarCurriculos(valor) {
+        const listaCurriculos = document.getElementById("listaCurriculos");
+        listaCurriculos.innerHTML = ""; // Limpa a lista atual
+
+        if (valor.length > 0) {
+          fetch("/resultados") // Supondo que este endpoint retorna todos os currículos
+            .then((response) => response.json())
+            .then((data) => {
+              const curriculosFiltrados = data.filter((curriculo) =>
+                curriculo.nome_curriculo
+                  .toLowerCase()
+                  .includes(valor.toLowerCase())
+              );
+
+              curriculosFiltrados.forEach((curriculo) => {
+                const div = document.createElement("div");
+                div.textContent = curriculo.nome_curriculo;
+                div.onclick = function () {
+                  document.getElementById("nomeCurriculo").value =
+                    curriculo.nome_curriculo;
+                  listaCurriculos.innerHTML = ""; // Limpa a lista após a seleção
+                };
+                listaCurriculos.appendChild(div);
+              });
+
+              if (curriculosFiltrados.length > 0) {
+                listaCurriculos.classList.add(
+                  "w-full",
+                  "bg-white",
+                  "border",
+                  "border-gray-200",
+                  "rounded-md",
+                  "shadow-lg",
+                  "max-h-60",
+                  "overflow-y-auto"
+                );
+              }
+            })
+            .catch((error) =>
+              console.error("Erro ao filtrar currículos:", error)
+            );
+        } else {
+          listaCurriculos.classList.remove(
+            "absolute",
+            "z-10",
+            "w-full",
+            "bg-white",
+            "border",
+            "border-gray-200",
+            "rounded-md",
+            "shadow-lg",
+            "max-h-60",
+            "overflow-y-auto"
+          );
+        }
+      }
+
+      function cancelarEntrevista() {
+        var nomeCandidatoSelecionado =
+          document.getElementById("cancelarCandidato").value;
+
+        if (!nomeCandidatoSelecionado) {
+          alert(
+            "Por favor, selecione um candidato para cancelar a entrevista."
+          );
+          return;
+        }
+
+        fetch("/cancelar_entrevista", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nomeCandidato: nomeCandidatoSelecionado }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                "Erro na resposta do servidor ao tentar cancelar a entrevista."
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              alert("Entrevista cancelada com sucesso.");
+              carregarNomesEntrevistas(); // Atualiza a lista de candidatos após o cancelamento
+              atualizarTabelaEntrevistas();
+            } else {
+              alert("Não foi possível cancelar a entrevista. " + data.message);
+            }
+          });
+      }
+
+      function carregarNomesEntrevistas() {
+        fetch("/entrevistas")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Erro ao carregar entrevistas.");
+            }
+            return response.json();
+          })
+          .then((entrevistas) => {
+            const selectCandidato =
+              document.getElementById("cancelarCandidato");
+            selectCandidato.innerHTML =
+              '<option value="">Selecione um candidato</option>'; // Limpa e adiciona a opção padrão
+            entrevistas.forEach((entrevista) => {
+              const option = document.createElement("option");
+              option.value = entrevista.candidato;
+              option.textContent = entrevista.candidato;
+              selectCandidato.appendChild(option);
+            });
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar nomes das entrevistas:", error);
+          });
+      }
+
+      function datesSetCallback(dateInfo) {
+        const mesAnoSelecionado = `${dateInfo.startStr.slice(
+          0,
+          4
+        )}-${dateInfo.startStr.slice(5, 7)}`;
+        carregarEntrevistasDoMesSelecionado(mesAnoSelecionado);
+      }
+
+      function carregarEntrevistasDoMesSelecionado(mesAno) {
+        fetch(`/entrevistas_mes/${mesAno}?origem=agenda`)
+          .then((response) => response.json())
+          .then((dados) => {
+            atualizarTabelaEntrevistas(dados);
+          })
+          .catch((error) =>
+            console.error("Erro ao carregar entrevistas:", error)
+          );
+      }
+
+      function atualizarTabelaEntrevistas(entrevistas) {
+        const listaEntrevistasEl = document.getElementById(
+          "corpoTabelaEntrevistas"
+        );
+        listaEntrevistasEl.innerHTML = ""; // Limpar tabela atual
+
+        entrevistas.forEach((entrevista) => {
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+      <td class="border px-4 py-2 text-center">${entrevista.candidato}</td>
+      <td class="border px-4 py-2 text-center">${entrevista.data}</td>
+      <td class="border px-4 py-2 text-center">${entrevista.horario}</td>
+      <td class="border px-4 py-2 text-center">${entrevista.perfil}</td>
+      <td class="border px-4 py-2 text-center">
+        <a href="/curriculos/${entrevista.nomeCurriculo}" target="_blank">${entrevista.nomeCurriculo}</a>
+      </td>
+    `;
+          listaEntrevistasEl.appendChild(linha);
+        });
+      }
+
+      function inicializarCalendario() {
+        var calendarEl = document.getElementById("calendario");
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          locale: "pt-br",
+          initialView: "dayGridMonth",
+          selectable: true,
+          // ... outras configurações ...
+          datesSet: datesSetCallback,
+        });
+
+        calendar.render();
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        inicializarCalendario();
+        // Carrega os dados iniciais ao carregar a página
+        const mesAnoInicial = new Date().toISOString().slice(0, 7);
+        carregarEntrevistasDoMesSelecionado(mesAnoInicial);
+      });
+    </script>
+  </body>
+</html>
